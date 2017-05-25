@@ -2,18 +2,31 @@
 var env = {};
 }
 
-Start = Statement* {return env; }
-Statement = Comment / GenericAssignmentStatementT
-// FIXME: add other system vars and user-defined
+Start =
+    Statement* {return env; }
+
+Statement
+    = Comment
+    / GenericAssignmentStatementT
+
 GenericAssignmentStatementT = Whitespace GenericAssignmentStatement Whitespace
-GenericAssignmentStatement   = TemplateAssignmentStatement
-                             / ConfigAssignmentStatement
-                             / ConfigAppendingAssignmentStatement
-                             / ConfigAppendingUniqueAssignmentStatement
-                             / ConfigRemovingAssignmentStatement
+GenericAssignmentStatement
+    // TEMPLATE
+    = TemplateAssignmentStatement
+    // CONFIG
+    / ConfigAssignmentStatement
+    / ConfigAppendingAssignmentStatement
+    / ConfigAppendingUniqueAssignmentStatement
+    / ConfigRemovingAssignmentStatement
+    // FIXME: add other qmake variables
+    / UserVariableAssignmentStatement
+    / UserVariableAppendingAssignmentStatement
+    / UserVariableAppendingUniqueAssignmentStatement
+    / UserVariableRemovingAssignmentStatement
 
 // -------------------------------------------------------------------------------------------------
 
+// # Single-line comment
 Comment "Comment string" = Whitespace "#" rvalue:([^\n])* Whitespace {
 	return "#" + rvalue.join("");
 }
@@ -23,8 +36,7 @@ Comment "Comment string" = Whitespace "#" rvalue:([^\n])* Whitespace {
 // TEMPLATE = app|lib|subdirs|aux|vcapp|vclib
 SystemTemplateVariable = "TEMPLATE"
 SystemTemplateVariableValue = "app" / "lib" / "subdirs" / "aux" / "vcapp" / "vclib"
-TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator rvalue:SystemTemplateVariableValue
-{
+TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator rvalue:SystemTemplateVariableValue {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     env.qmakeVars[lvalue] = rvalue;
@@ -52,16 +64,14 @@ SystemConfigVariableValue =   "release" / "debug" / "debug_and_release" / "debug
                             / "designer" / "no_lflags_merge" / "flat" / "embed_manifest_dll" / "embed_manifest_exe"
                             / "app_bundle" / "lib_bundle" / "largefile" / "separate_debug_info"
 
-ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValue
-{
+ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValue {
     if (!env.qmakeVars)
         env.qmakeVars = {};
-    env.qmakeVars[lvalue] = rvalue;
+    env.qmakeVars[lvalue] = [rvalue];
     return undefined;
 }
 
-ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValue
-{
+ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValue {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
@@ -70,21 +80,17 @@ ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssign
     return undefined;
 }
 
-ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValue
-{
+ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValue {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = [rvalue];
-
     if (env.qmakeVars[lvalue].indexOf(rvalue) < 0)
     	env.qmakeVars[lvalue].push(rvalue);
-    
     return undefined;
 }
 
-ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValue
-{
+ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValue {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
@@ -97,11 +103,55 @@ ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignme
 
 // -------------------------------------------------------------------------------------------------
 
-Variable = SystemVariable / UserVariable
-SystemVariable = SystemTemplateVariable / SystemConfigVariable
+UserVariableAssignmentStatement = lvalue:UserVariableIdentifier AssignmentOperator rvalue:RvalueExpression {
+    if (!env.userVars)
+        env.userVars = {};
+    env.userVars[lvalue] = [rvalue];
+    return undefined;
+}
 
-UserVariable = Word
+UserVariableAppendingAssignmentStatement = lvalue:UserVariableIdentifier AppendingAssignmentOperator rvalue:RvalueExpression {
+    if (!env.userVars)
+        env.userVars = {};
+    if (!env.userVars[lvalue])
+        env.userVars[lvalue] = [];
+    env.userVars[lvalue].push(rvalue);
+    return undefined;
+}
 
+UserVariableAppendingUniqueAssignmentStatement = lvalue:UserVariableIdentifier AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
+    if (!env.userVars)
+        env.userVars = {};
+    if (!env.userVars[lvalue])
+        env.userVars[lvalue] = [rvalue];
+    if (env.userVars[lvalue].indexOf(rvalue) < 0)
+    	env.userVars[lvalue].push(rvalue);
+    return undefined;
+}
+
+UserVariableRemovingAssignmentStatement = lvalue:UserVariableIdentifier RemovingAssignmentOperator rvalue:RvalueExpression {
+    if (!env.userVars)
+        env.userVars = {};
+    if (!env.userVars[lvalue])
+    	return undefined;
+    
+    // Search for rvalue in the array and remove all occurences
+	env.userVars[lvalue] = env.userVars[lvalue].filter(function(element) { return (element !== rvalue); });
+    return undefined;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+// FIXME: implement variables expansion and replace functions support
+// FIXME: fix the left recursion issue
+RvalueExpression = Word
+
+// Variables: qmake and user-defined ones
+VariableIdentifier = SystemVariableIdentifier / UserVariableIdentifier
+SystemVariableIdentifier = SystemTemplateVariable / SystemConfigVariable
+UserVariableIdentifier = Identifier
+
+// Assignment operators
 AssignmentOperator = Whitespace "=" Whitespace
 AppendingAssignmentOperator = Whitespace "+=" Whitespace              // DEFINES += USE_MY_STUFF
 AppendingUniqueAssignmentOperator = Whitespace  "*=" Whitespace       // DEFINES *= USE_MY_STUFF
@@ -109,11 +159,20 @@ RemovingAssignmentOperator = Whitespace "-=" Whitespace               // DEFINES
 // TODO: -=, *=
 //ReplacingAssignmentOperator = "~="            // DEFINES ~= s/QT_[DT].+/QT
 
-Word = w:Character+ { return w.join(""); }
-Character = c:[^\r\n\t\"]
-//Letter = c:[a-zA-Z0-9]
-Whitespace = [ \t\r\n]*
+// Identifiers
+// NOTE: variable name must start from letter of underscope
+Identifier = s1:[a-zA-Z_] s2:[a-zA-Z_0-9]* {
+    return s1 + s2.join("");
+}
 
+// FIXME: add String rule; think about quoted strings
+Word = w:Letter+ { return w.join(""); }
+
+// Primitive types
+AnyCharacter = c:[^\r\n\t\"]
+Letter = c:[a-zA-Z0-9]
+Digit = d:[0-9]
+Whitespace = [ \t\r\n]*
 
 //OpenBracket  = Whitespace '(' Whitespace
 //CloseBracket = Whitespace ')' Whitespace
