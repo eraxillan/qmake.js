@@ -1,8 +1,8 @@
 {
-var SystemVariablesDict = {};
+var env = {};
 }
 
-Start = Statement* {return SystemVariablesDict; }
+Start = Statement* {return env; }
 Statement = Comment / GenericAssignmentStatementT
 // FIXME: add other system vars and user-defined
 GenericAssignmentStatementT = Whitespace GenericAssignmentStatement Whitespace
@@ -14,7 +14,7 @@ GenericAssignmentStatement   = TemplateAssignmentStatement
 
 // -------------------------------------------------------------------------------------------------
 
-Comment "Comment string" = Whitespace "#" rvalue:([^\n])* {
+Comment "Comment string" = Whitespace "#" rvalue:([^\n])* Whitespace {
 	return "#" + rvalue.join("");
 }
 
@@ -25,7 +25,9 @@ SystemTemplateVariable = "TEMPLATE"
 SystemTemplateVariableValue = "app" / "lib" / "subdirs" / "aux" / "vcapp" / "vclib"
 TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator rvalue:SystemTemplateVariableValue
 {
-    SystemVariablesDict[lvalue] = rvalue;
+    if (!env.qmakeVars)
+        env.qmakeVars = {};
+    env.qmakeVars[lvalue] = rvalue;
     return undefined;
 }
 
@@ -52,36 +54,44 @@ SystemConfigVariableValue =   "release" / "debug" / "debug_and_release" / "debug
 
 ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValue
 {
-    SystemVariablesDict[lvalue] = rvalue;
+    if (!env.qmakeVars)
+        env.qmakeVars = {};
+    env.qmakeVars[lvalue] = rvalue;
     return undefined;
 }
 
 ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValue
 {
-    if (!SystemVariablesDict[lvalue])
-        SystemVariablesDict[lvalue] = [];
-    SystemVariablesDict[lvalue].push(rvalue);
+    if (!env.qmakeVars)
+        env.qmakeVars = {};
+    if (!env.qmakeVars[lvalue])
+        env.qmakeVars[lvalue] = [];
+    env.qmakeVars[lvalue].push(rvalue);
     return undefined;
 }
 
 ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValue
 {
-    if (!SystemVariablesDict[lvalue])
-        SystemVariablesDict[lvalue] = [rvalue];
+    if (!env.qmakeVars)
+        env.qmakeVars = {};
+    if (!env.qmakeVars[lvalue])
+        env.qmakeVars[lvalue] = [rvalue];
 
-    if (SystemVariablesDict[lvalue].indexOf(rvalue) < 0)
-    	SystemVariablesDict[lvalue].push(rvalue);
+    if (env.qmakeVars[lvalue].indexOf(rvalue) < 0)
+    	env.qmakeVars[lvalue].push(rvalue);
     
     return undefined;
 }
 
 ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValue
 {
-    if (!SystemVariablesDict[lvalue])
+    if (!env.qmakeVars)
+        env.qmakeVars = {};
+    if (!env.qmakeVars[lvalue])
     	return undefined;
     
     // Search for rvalue in the array and remove all occurences
-	SystemVariablesDict[lvalue] = SystemVariablesDict[lvalue].filter(function(element) { return (element !== rvalue); });
+	env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(element) { return (element !== rvalue); });
     return undefined;
 }
 
