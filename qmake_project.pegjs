@@ -148,8 +148,14 @@ RvalueExpression = v1:(String / VariableExpansionExpression) v2:(String / Variab
     return v1 + v2.join("");
 }
 
-// FIXME: add $$VAR syntax
-VariableExpansionExpression = "$${" id:VariableIdentifier "}" {
+// -------------------------------------------------------------------------------------------------
+
+// qmake variable expansion statement:
+// 1) OUTPUT_LIB = $${BUILD_DIR}/mylib.dll
+// 2) OUTPUT_LIB = $$LIB_NAME
+VariableExpansionExpression = VariableExpansionExpressionEmbed / VariableExpansionExpressionLone
+
+VariableExpansionExpressionEmbed = "$${" id:VariableIdentifier "}" {
     if (env.qmakeVars && env.qmakeVars[id])
         return env.qmakeVars[id].join(" ");
     if (env.userVars && env.userVars[id])
@@ -158,11 +164,24 @@ VariableExpansionExpression = "$${" id:VariableIdentifier "}" {
     return "";
 }
 
+VariableExpansionExpressionLone = "$$" id:VariableIdentifier {
+    if (env.qmakeVars && env.qmakeVars[id])
+        return env.qmakeVars[id].join(" ");
+    if (env.userVars && env.userVars[id])
+        return env.userVars[id].join(" ");
+    //throw new ParseError("Variable " + id + " was not found");
+    return "";
+}
+
+// -------------------------------------------------------------------------------------------------
+
 // Variables: qmake and user-defined ones
 VariableIdentifier = VariableIdentifierT
 VariableIdentifierT = SystemVariableIdentifier / UserVariableIdentifier
 
-SystemVariableIdentifier = (SystemTemplateVariable / SystemConfigVariable) ![_a-zA-Z0-9]+
+SystemVariableIdentifier = id:(SystemTemplateVariable / SystemConfigVariable) ![_a-zA-Z0-9]+ {
+   return id;
+}
 UserVariableIdentifier = Identifier
 
 // Assignment operators
@@ -170,7 +189,7 @@ AssignmentOperator = Whitespace "=" Whitespace
 AppendingAssignmentOperator = Whitespace "+=" Whitespace              // DEFINES += USE_MY_STUFF
 AppendingUniqueAssignmentOperator = Whitespace  "*=" Whitespace       // DEFINES *= USE_MY_STUFF
 RemovingAssignmentOperator = Whitespace "-=" Whitespace               // DEFINES -= USE_MY_STUFF
-// TODO: -=, *=
+// TODO: "~=" qmake operator support
 //ReplacingAssignmentOperator = "~="            // DEFINES ~= s/QT_[DT].+/QT
 
 // Identifiers
