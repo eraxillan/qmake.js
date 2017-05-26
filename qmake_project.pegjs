@@ -40,7 +40,7 @@ TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator r
     if (!env.qmakeVars)
         env.qmakeVars = {};
     env.qmakeVars[lvalue] = rvalue;
-    return undefined;
+    return {name:"TEMPLATE", op:"=", value:rvalue};
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalu
     if (!env.qmakeVars)
         env.qmakeVars = {};
     env.qmakeVars[lvalue] = [rvalue];
-    return undefined;
+    return {name:"CONFIG", op:"=", value:rvalue};
 }
 
 ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValue {
@@ -77,7 +77,7 @@ ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssign
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = [];
     env.qmakeVars[lvalue].push(rvalue);
-    return undefined;
+    return {name:"CONFIG", op:"+=", value:rvalue};
 }
 
 ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValue {
@@ -87,7 +87,7 @@ ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable Appending
         env.qmakeVars[lvalue] = [rvalue];
     if (env.qmakeVars[lvalue].indexOf(rvalue) < 0)
     	env.qmakeVars[lvalue].push(rvalue);
-    return undefined;
+    return {name:"CONFIG", op:"*=", value:rvalue};
 }
 
 ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValue {
@@ -98,7 +98,7 @@ ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignme
     
     // Search for rvalue in the array and remove all occurences
 	env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(element) { return (element !== rvalue); });
-    return undefined;
+    return {name:"CONFIG", op:"-=", value:rvalue};
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ UserVariableAssignmentStatement = lvalue:UserVariableIdentifier AssignmentOperat
     if (!env.userVars)
         env.userVars = {};
     env.userVars[lvalue] = [rvalue];
-    return undefined;
+    return {name:lvalue, op:"=", value:rvalue};
 }
 
 UserVariableAppendingAssignmentStatement = lvalue:UserVariableIdentifier AppendingAssignmentOperator rvalue:RvalueExpression {
@@ -116,7 +116,7 @@ UserVariableAppendingAssignmentStatement = lvalue:UserVariableIdentifier Appendi
     if (!env.userVars[lvalue])
         env.userVars[lvalue] = [];
     env.userVars[lvalue].push(rvalue);
-    return undefined;
+    return {name:lvalue, op:"+=", value:rvalue};
 }
 
 UserVariableAppendingUniqueAssignmentStatement = lvalue:UserVariableIdentifier AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
@@ -126,7 +126,7 @@ UserVariableAppendingUniqueAssignmentStatement = lvalue:UserVariableIdentifier A
         env.userVars[lvalue] = [rvalue];
     if (env.userVars[lvalue].indexOf(rvalue) < 0)
     	env.userVars[lvalue].push(rvalue);
-    return undefined;
+    return {name:lvalue, op:"*=", value:rvalue};
 }
 
 UserVariableRemovingAssignmentStatement = lvalue:UserVariableIdentifier RemovingAssignmentOperator rvalue:RvalueExpression {
@@ -137,18 +137,32 @@ UserVariableRemovingAssignmentStatement = lvalue:UserVariableIdentifier Removing
     
     // Search for rvalue in the array and remove all occurences
 	env.userVars[lvalue] = env.userVars[lvalue].filter(function(element) { return (element !== rvalue); });
-    return undefined;
+    return {name:lvalue, op:"-=", value:rvalue};
 }
 
 // -------------------------------------------------------------------------------------------------
 
 // FIXME: implement variables expansion and replace functions support
 // FIXME: fix the left recursion issue
-RvalueExpression = Word
+RvalueExpression = v1:(String / VariableExpansionExpression) v2:(String / VariableExpansionExpression)* {
+    return v1 + v2.join("");
+}
+
+// FIXME: add $$VAR syntax
+VariableExpansionExpression = "$${" id:VariableIdentifier "}" {
+    if (env.qmakeVars && env.qmakeVars[id])
+        return env.qmakeVars[id].join(" ");
+    if (env.userVars && env.userVars[id])
+        return env.userVars[id].join(" ");
+    //throw new ParseError("Variable " + id + " was not found");
+    return "";
+}
 
 // Variables: qmake and user-defined ones
-VariableIdentifier = SystemVariableIdentifier / UserVariableIdentifier
-SystemVariableIdentifier = SystemTemplateVariable / SystemConfigVariable
+VariableIdentifier = VariableIdentifierT
+VariableIdentifierT = SystemVariableIdentifier / UserVariableIdentifier
+
+SystemVariableIdentifier = (SystemTemplateVariable / SystemConfigVariable) ![_a-zA-Z0-9]+
 UserVariableIdentifier = Identifier
 
 // Assignment operators
@@ -161,18 +175,21 @@ RemovingAssignmentOperator = Whitespace "-=" Whitespace               // DEFINES
 
 // Identifiers
 // NOTE: variable name must start from letter of underscope
-Identifier = s1:[a-zA-Z_] s2:[a-zA-Z_0-9]* {
+Identifier = s1:[_a-zA-Z] s2:[_a-zA-Z0-9]* {
     return s1 + s2.join("");
 }
 
 // FIXME: add String rule; think about quoted strings
+String = Word
 Word = w:Letter+ { return w.join(""); }
 
 // Primitive types
 AnyCharacter = c:[^\r\n\t\"]
 Letter = c:[a-zA-Z0-9]
 Digit = d:[0-9]
-Whitespace = [ \t\r\n]*
+Whitespace = [ \t\r\n]* {
+   return "";
+}
 
 //OpenBracket  = Whitespace '(' Whitespace
 //CloseBracket = Whitespace ')' Whitespace
