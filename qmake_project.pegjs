@@ -103,12 +103,12 @@ ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignme
 
 // -------------------------------------------------------------------------------------------------
 
-UserVariableAssignmentStatement = lvalue:UserVariableIdentifier AssignmentOperator rvalue:RvalueExpression? LineBreak* {
+UserVariableAssignmentStatement = lvalue:UserVariableIdentifier AssignmentOperator rvalue:RvalueExpression {
     if (!env.userVars)
         env.userVars = {};
     if (!rvalue)
         rvalue = "";
-    env.userVars[lvalue] = [rvalue];
+    env.userVars[lvalue] = rvalue;
     return {name:lvalue, op:"=", value:rvalue};
 }
 
@@ -146,8 +146,23 @@ UserVariableRemovingAssignmentStatement = lvalue:UserVariableIdentifier Removing
 
 // FIXME: implement variables expansion and replace functions support
 // FIXME: fix the left recursion issue
-RvalueExpression = v1:(String / VariableExpansionExpression) v2:(String / VariableExpansionExpression)* {
+SingleLineExpression = Whitespace* v:(StringExpression?) Whitespace* LineBreak+ {
+    return [v ? v : ""];
+}
+
+MultilineExpression_1 = Whitespace* v:StringExpression? Whitespace* "\\" LineBreak+ { return v; }
+MultilineExpression_2 = Whitespace* v:StringExpression? Whitespace* "\\"? LineBreak+ { return v; }
+MultilineExpression = v1:MultilineExpression_1
+                      v2:MultilineExpression_2* {
+    return [v1].concat(v2);
+}
+
+StringExpression = v1:(String / VariableExpansionExpression) v2:(String / VariableExpansionExpression)* {
     return v1 + v2.join("");
+}
+
+RvalueExpression = v:(SingleLineExpression / MultilineExpression) {
+    return v;
 }
 
 // -------------------------------------------------------------------------------------------------
