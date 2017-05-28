@@ -9,7 +9,7 @@ Statement
     = Comment
     / GenericAssignmentStatementT
 
-GenericAssignmentStatementT = Whitespace GenericAssignmentStatement Whitespace
+GenericAssignmentStatementT = Whitespace* GenericAssignmentStatement Whitespace*
 GenericAssignmentStatement
     // TEMPLATE
     = TemplateAssignmentStatement
@@ -27,8 +27,8 @@ GenericAssignmentStatement
 // -------------------------------------------------------------------------------------------------
 
 // # Single-line comment
-Comment "Comment string" = Whitespace "#" rvalue:([^\n])* Whitespace {
-	return "#" + rvalue.join("");
+Comment "Comment string" = Whitespace* "#" rvalue:$(!LineBreak .)* LineBreak+ {
+	return "#" + rvalue;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ Comment "Comment string" = Whitespace "#" rvalue:([^\n])* Whitespace {
 // TEMPLATE = app|lib|subdirs|aux|vcapp|vclib
 SystemTemplateVariable = "TEMPLATE"
 SystemTemplateVariableValue = "app" / "lib" / "subdirs" / "aux" / "vcapp" / "vclib"
-TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator rvalue:SystemTemplateVariableValue {
+TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator rvalue:SystemTemplateVariableValue Whitespace* LineBreak* {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     env.qmakeVars[lvalue] = rvalue;
@@ -64,7 +64,7 @@ SystemConfigVariableValue =   "release" / "debug" / "debug_and_release" / "debug
                             / "designer" / "no_lflags_merge" / "flat" / "embed_manifest_dll" / "embed_manifest_exe"
                             / "app_bundle" / "lib_bundle" / "largefile" / "separate_debug_info"
 
-ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValue {
+ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValue? LineBreak* {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     env.qmakeVars[lvalue] = [rvalue];
@@ -103,9 +103,11 @@ ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignme
 
 // -------------------------------------------------------------------------------------------------
 
-UserVariableAssignmentStatement = lvalue:UserVariableIdentifier AssignmentOperator rvalue:RvalueExpression {
+UserVariableAssignmentStatement = lvalue:UserVariableIdentifier AssignmentOperator rvalue:RvalueExpression? LineBreak* {
     if (!env.userVars)
         env.userVars = {};
+    if (!rvalue)
+        rvalue = "";
     env.userVars[lvalue] = [rvalue];
     return {name:lvalue, op:"=", value:rvalue};
 }
@@ -185,10 +187,10 @@ SystemVariableIdentifier = id:(SystemTemplateVariable / SystemConfigVariable) ![
 UserVariableIdentifier = Identifier
 
 // Assignment operators
-AssignmentOperator = Whitespace "=" Whitespace
-AppendingAssignmentOperator = Whitespace "+=" Whitespace              // DEFINES += USE_MY_STUFF
-AppendingUniqueAssignmentOperator = Whitespace  "*=" Whitespace       // DEFINES *= USE_MY_STUFF
-RemovingAssignmentOperator = Whitespace "-=" Whitespace               // DEFINES -= USE_MY_STUFF
+AssignmentOperator = Whitespace* "=" Whitespace*
+AppendingAssignmentOperator = Whitespace* "+=" Whitespace*              // DEFINES += USE_MY_STUFF
+AppendingUniqueAssignmentOperator = Whitespace*  "*=" Whitespace*       // DEFINES *= USE_MY_STUFF
+RemovingAssignmentOperator = Whitespace* "-=" Whitespace*               // DEFINES -= USE_MY_STUFF
 // TODO: "~=" qmake operator support
 //ReplacingAssignmentOperator = "~="            // DEFINES ~= s/QT_[DT].+/QT
 
@@ -206,8 +208,14 @@ Word = w:Letter+ { return w.join(""); }
 AnyCharacter = c:[^\r\n\t\"]
 Letter = c:[a-zA-Z0-9]
 Digit = d:[0-9]
-Whitespace = [ \t\r\n]* {
-   return "";
+
+// Delimeters
+LineBreak = [\r\n] {
+    return "LB";
+}
+
+Whitespace = [ \t] {
+   return "WS";
 }
 
 //OpenBracket  = Whitespace '(' Whitespace
