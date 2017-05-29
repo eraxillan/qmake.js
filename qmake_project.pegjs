@@ -55,23 +55,25 @@ TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator r
 //			|app_bundle|lib_bundle (macOS-only)
 //			|largefile|separate_debug_info (Unix-only)
 SystemConfigVariable = "CONFIG"
-SystemConfigVariableValue =   "release" / "debug" / "debug_and_release" / "debug_and_release_target" / "build_all"
-                            / "autogen_precompile_source" / "ordered" / "precompile_header"
-                            / "warn_on" / "warn_off" / "exceptions" / "exceptions_off" / "rtti" / "rtti_off"
-                            / "stl" / "stl_off" / "thread" / "c++11" / "c++14" / "create_prl" / "link_prl"
-                            / "qt" / "x11" / "testcase" / "insignificant_test"
-                            / "windows" / "console" / "shared" / "dll" / "static" / "staticlib" / "plugin"
-                            / "designer" / "no_lflags_merge" / "flat" / "embed_manifest_dll" / "embed_manifest_exe"
-                            / "app_bundle" / "lib_bundle" / "largefile" / "separate_debug_info"
+SystemConfigVariableValue
+    = "debug_and_release" / "debug_and_release_target" / "debug" / "release"
+    / "build_all"
+    / "autogen_precompile_source" / "ordered" / "precompile_header"
+    / "warn_off" / "warn_on" / "exceptions_off" / "exceptions" / "rtti_off" / "rtti"
+    / "stl_off" / "stl" / "thread" / "c++11" / "c++14" / "create_prl" / "link_prl"
+    / "qt" / "x11" / "testcase" / "insignificant_test"
+    / "windows" / "console" / "shared" / "dll" / "static" / "staticlib" / "plugin"
+    / "designer" / "no_lflags_merge" / "flat" / "embed_manifest_dll" / "embed_manifest_exe"
+    / "app_bundle" / "lib_bundle" / "largefile" / "separate_debug_info"
 
-ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValue? LineBreak* {
+ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValue? Whitespace* LineBreak* {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     env.qmakeVars[lvalue] = [rvalue];
     return {name:"CONFIG", op:"=", value:rvalue};
 }
 
-ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValue {
+ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValue Whitespace* LineBreak* {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
@@ -80,7 +82,7 @@ ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssign
     return {name:"CONFIG", op:"+=", value:rvalue};
 }
 
-ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValue {
+ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValue Whitespace* LineBreak* {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
@@ -90,7 +92,7 @@ ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable Appending
     return {name:"CONFIG", op:"*=", value:rvalue};
 }
 
-ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValue {
+ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValue Whitespace* LineBreak* {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
