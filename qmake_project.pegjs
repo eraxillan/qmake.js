@@ -56,7 +56,7 @@ TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator r
 //			|largefile|separate_debug_info (Unix-only)
 SystemConfigVariable = "CONFIG"
 SystemConfigVariableValue
-    = "debug_and_release" / "debug_and_release_target" / "debug" / "release"
+    = "debug_and_release_target" / "debug_and_release" / "debug" / "release"
     / "build_all"
     / "autogen_precompile_source" / "ordered" / "precompile_header"
     / "warn_off" / "warn_on" / "exceptions_off" / "exceptions" / "rtti_off" / "rtti"
