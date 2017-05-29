@@ -201,7 +201,8 @@ VariableIdentifierT = SystemVariableIdentifier / UserVariableIdentifier
 SystemVariableIdentifier = id:(SystemTemplateVariable / SystemConfigVariable) ![_a-zA-Z0-9]+ {
    return id;
 }
-UserVariableIdentifier = Identifier
+UserVariableIdentifier
+    = !SystemVariableIdentifier Identifier
 
 // Assignment operators
 AssignmentOperator = Whitespace* "=" Whitespace*
