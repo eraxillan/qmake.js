@@ -54,8 +54,9 @@ TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator r
 //			|flat|embed_manifest_dll|embed_manifest_exe (Windows-only)
 //			|app_bundle|lib_bundle (macOS-only)
 //			|largefile|separate_debug_info (Unix-only)
-SystemConfigVariable = "CONFIG"
-SystemConfigVariableValue
+SystemConfigVariable
+    = "CONFIG"
+SystemConfigVariableValueKeyword
     = "debug_and_release_target" / "debug_and_release" / "debug" / "release"
     / "build_all"
     / "autogen_precompile_source" / "ordered" / "precompile_header"
@@ -65,42 +66,62 @@ SystemConfigVariableValue
     / "windows" / "console" / "shared" / "dll" / "static" / "staticlib" / "plugin"
     / "designer" / "no_lflags_merge" / "flat" / "embed_manifest_dll" / "embed_manifest_exe"
     / "app_bundle" / "lib_bundle" / "largefile" / "separate_debug_info"
+SystemConfigVariableValueKeywordWithWS
+    = v:SystemConfigVariableValueKeyword Whitespace+ {
+    return v;
+}
+SystemConfigVariableSingleValueOrList
+    = SystemConfigVariableValueKeywordWithWS / SystemConfigVariableValueKeyword
 
-ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValue? Whitespace* LineBreak* {
+SystemConfigVariableValueList
+    = v:SystemConfigVariableSingleValueOrList+ LineBreak+ {
+    return v;
+}
+
+ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValueKeyword? Whitespace* LineBreak* {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     env.qmakeVars[lvalue] = [rvalue];
-    return {name:"CONFIG", op:"=", value:rvalue};
+    return {name:lvalue, op:"=", value:rvalue};
 }
 
-ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValue Whitespace* LineBreak* {
+ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValueList {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = [];
-    env.qmakeVars[lvalue].push(rvalue);
-    return {name:"CONFIG", op:"+=", value:rvalue};
+
+    if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
+    env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
+    return {name:lvalue, op:"+=", value:rvalue};
 }
 
-ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValue Whitespace* LineBreak* {
+ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValueList {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = [rvalue];
-    if (env.qmakeVars[lvalue].indexOf(rvalue) < 0)
-    	env.qmakeVars[lvalue].push(rvalue);
-    return {name:"CONFIG", op:"*=", value:rvalue};
+
+    if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
+    for (var i = 0; i < rvalue.length; ++i) {
+        if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
+            env.qmakeVars[lvalue].push(rvalue[i]);
+    }
+    return {name:lvalue, op:"*=", value:rvalue};
 }
 
-ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValue Whitespace* LineBreak* {
+ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValueList {
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
     	return undefined;
     
     // Search for rvalue in the array and remove all occurences
-	env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(element) { return (element !== rvalue); });
-    return {name:"CONFIG", op:"-=", value:rvalue};
+    if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
+    for (var i = 0; i < rvalue.length; ++i) {
+	    env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
+    }
+    return {name:lvalue, op:"-=", value:rvalue};
 }
 
 // -------------------------------------------------------------------------------------------------
