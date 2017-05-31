@@ -1,0 +1,43 @@
+
+User variables assignment (single- and multiline)
+
+CONFIG = static debug
+CONFIG += stl_off
+CONFIG *= stl_off
+CONFIG -= stl_off
+
+type = app
+loc = ru en
+loc += es
+loc *= es
+loc -= es
+
+test_1 = $$type
+test_2 = abc$${type}lng$${loc}
+
+buildmode =  lib static \
+ debug release \
+     qt
+
+----------------------------------------------------------------------------------------------------
+
+TEMPLATE = app  
+CONFIG = qt 
+CONFIG +=   x11 
+CONFIG += debug_and_release debug_and_release_target flat 
+CONFIG += static
+CONFIG *= qt x11 static
+CONFIG *= testcase
+CONFIG -= qt x11
+
+# Build mode (release by default)
+buildmode = release  debug
+
+CONFIG123 = 123  \
+  456 \
+     789
+
+
+TEST_LINEBREAK =   
+
+USER_VAR = abc$${CONFIG123}xyz 

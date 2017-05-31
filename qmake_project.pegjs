@@ -11,8 +11,9 @@ Statement
 
 GenericAssignmentStatementT = Whitespace* GenericAssignmentStatement Whitespace*
 GenericAssignmentStatement
+    = EmptyString
     // TEMPLATE
-    = TemplateAssignmentStatement
+    / TemplateAssignmentStatement
     // CONFIG
     / ConfigAssignmentStatement
     / ConfigAppendingAssignmentStatement
@@ -26,8 +27,14 @@ GenericAssignmentStatement
 
 // -------------------------------------------------------------------------------------------------
 
+EmptyString "Empty string"
+    = (Whitespace+ LineBreak*) / (Whitespace* LineBreak+) {
+    return "";
+}
+
 // # Single-line comment
-Comment "Comment string" = Whitespace* "#" rvalue:$(!LineBreak .)* LineBreak+ {
+Comment "Comment"
+    = Whitespace* "#" rvalue:$(!LineBreak .)* LineBreak+ {
 	return "#" + rvalue;
 }
 
@@ -78,110 +85,121 @@ SystemConfigVariableValueList
     return v;
 }
 
-ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValueKeyword? Whitespace* LineBreak* {
+ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValueList? Whitespace* LineBreak* {
+    if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
+    
     if (!env.qmakeVars)
         env.qmakeVars = {};
-    env.qmakeVars[lvalue] = [rvalue];
+    env.qmakeVars[lvalue] = rvalue ? rvalue : "";
     return {name:lvalue, op:"=", value:rvalue};
 }
 
 ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValueList {
+    if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = [];
-
-    if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
+    
     env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
     return {name:lvalue, op:"+=", value:rvalue};
 }
 
 ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValueList {
+    if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
-        env.qmakeVars[lvalue] = [rvalue];
+        env.qmakeVars[lvalue] = rvalue;
 
-    if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
     for (var i = 0; i < rvalue.length; ++i) {
         if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
             env.qmakeVars[lvalue].push(rvalue[i]);
     }
-    return {name:lvalue, op:"*=", value:rvalue};
+    return {name:"CONFIG", op:"*=", value:rvalue};
 }
 
 ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValueList {
+    if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
     	return undefined;
     
     // Search for rvalue in the array and remove all occurences
-    if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
     for (var i = 0; i < rvalue.length; ++i) {
 	    env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
     }
-    return {name:lvalue, op:"-=", value:rvalue};
+    return {name:"CONFIG", op:"-=", value:rvalue};
 }
 
 // -------------------------------------------------------------------------------------------------
 
 UserVariableAssignmentStatement = lvalue:UserVariableIdentifier AssignmentOperator rvalue:RvalueExpression {
+    if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.userVars)
         env.userVars = {};
     if (!rvalue)
         rvalue = "";
+    
     env.userVars[lvalue] = rvalue;
     return {name:lvalue, op:"=", value:rvalue};
 }
 
 UserVariableAppendingAssignmentStatement = lvalue:UserVariableIdentifier AppendingAssignmentOperator rvalue:RvalueExpression {
+    if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.userVars)
         env.userVars = {};
     if (!env.userVars[lvalue])
         env.userVars[lvalue] = [];
-    env.userVars[lvalue].push(rvalue);
+
+    env.userVars[lvalue] = env.userVars[lvalue].concat(rvalue);
     return {name:lvalue, op:"+=", value:rvalue};
 }
 
 UserVariableAppendingUniqueAssignmentStatement = lvalue:UserVariableIdentifier AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
+    if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.userVars)
         env.userVars = {};
     if (!env.userVars[lvalue])
-        env.userVars[lvalue] = [rvalue];
-    if (env.userVars[lvalue].indexOf(rvalue) < 0)
-    	env.userVars[lvalue].push(rvalue);
+        env.userVars[lvalue] = rvalue;
+    for (var i = 0; i < rvalue.length; ++i) {
+        if (env.userVars[lvalue].indexOf(rvalue[i]) < 0)
+            env.userVars[lvalue].push(rvalue[i]);
+    }
     return {name:lvalue, op:"*=", value:rvalue};
 }
 
 UserVariableRemovingAssignmentStatement = lvalue:UserVariableIdentifier RemovingAssignmentOperator rvalue:RvalueExpression {
+    if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.userVars)
         env.userVars = {};
     if (!env.userVars[lvalue])
     	return undefined;
+    if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
     
     // Search for rvalue in the array and remove all occurences
-	env.userVars[lvalue] = env.userVars[lvalue].filter(function(element) { return (element !== rvalue); });
+    for (var i = 0; i < rvalue.length; ++i) {
+	    env.userVars[lvalue] = env.userVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
+    }
     return {name:lvalue, op:"-=", value:rvalue};
 }
 
 // -------------------------------------------------------------------------------------------------
 
-// FIXME: implement variables expansion and replace functions support
-// FIXME: fix the left recursion issue
-SingleLineExpression = Whitespace* v:(StringExpression?) Whitespace* LineBreak+ {
-    return [v ? v : ""];
+// FIXME: implement qmake replace function result expansion support
+SingleLineExpression = Whitespace* v:(StringList?) !"\\" LineBreak* {
+    return v ? v : [""];
 }
 
-MultilineExpression_1 = Whitespace* v:StringExpression? Whitespace* "\\" LineBreak+ { return v; }
-MultilineExpression_2 = Whitespace* v:StringExpression? Whitespace* "\\"? LineBreak+ { return v; }
+MultilineExpression_1 = Whitespace* v:StringList? "\\"  LineBreak+ { return v; }
+MultilineExpression_2 = Whitespace* v:StringList  "\\"? LineBreak* { return v; }
 MultilineExpression = v1:MultilineExpression_1
                       v2:MultilineExpression_2* {
-    return [v1].concat(v2);
-}
-
-StringExpression = v1:(String / VariableExpansionExpression) v2:(String / VariableExpansionExpression)* {
-    return v1 + v2.join("");
+    var result = v1;
+    for (var i = 0; i < v2.length; ++i)
+        result = result.concat(v2[i]);
+    return result;
 }
 
 RvalueExpression = v:(SingleLineExpression / MultilineExpression) {
@@ -200,7 +218,7 @@ VariableExpansionExpressionEmbed = "$${" id:VariableIdentifier "}" {
         return env.qmakeVars[id].join(" ");
     if (env.userVars && env.userVars[id])
         return env.userVars[id].join(" ");
-    //throw new ParseError("Variable " + id + " was not found");
+    error("Variable " + id + " was not found");
     return "";
 }
 
@@ -209,7 +227,7 @@ VariableExpansionExpressionLone = "$$" id:VariableIdentifier {
         return env.qmakeVars[id].join(" ");
     if (env.userVars && env.userVars[id])
         return env.userVars[id].join(" ");
-    //throw new ParseError("Variable " + id + " was not found");
+    error("Variable " + id + " was not found");
     return "";
 }
 
@@ -237,12 +255,31 @@ RemovingAssignmentOperator = Whitespace* "-=" Whitespace*               // DEFIN
 
 // Identifiers
 // NOTE: variable name must start from letter of underscope
-Identifier = s1:[_a-zA-Z] s2:[_a-zA-Z0-9]* {
+Identifier "Identifier" = s1:[_a-zA-Z] s2:[_a-zA-Z0-9]* {
     return s1 + s2.join("");
 }
 
-// FIXME: add String rule; think about quoted strings
-String = Word
+// String list (whitespace-separated)
+ExpandedString
+    = v1:(String / VariableExpansionExpression)
+      v2:(String / VariableExpansionExpression)* {
+    return v1 + v2.join("");
+}
+
+StringListItemWithWS "String followed with whitespace"
+    = v:ExpandedString Whitespace+ {
+    return v;
+}
+StringListItemOrString "String followed with whitespace OR String"
+    = StringListItemWithWS / ExpandedString
+
+StringList "String list"
+    = v:StringListItemOrString+ {
+    return v;
+}
+
+// FIXME: String -> any char before WS+ || \" any char \"
+String "String" = Word
 Word = w:Letter+ { return w.join(""); }
 
 // Primitive types
@@ -251,11 +288,11 @@ Letter = c:[a-zA-Z0-9]
 Digit = d:[0-9]
 
 // Delimeters
-LineBreak = [\r\n] {
+LineBreak "Linebreak" = [\r\n] {
     return "LB";
 }
 
-Whitespace = [ \t] {
+Whitespace "Whitespace" = [ \t] {
    return "WS";
 }
 
