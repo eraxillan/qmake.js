@@ -1,9 +1,38 @@
 {
 var env = {};
+
+initBuiltinVars();
+initBuiltinReplaceFunctions();
+initBuiltinTestFunctions();
+
+function callFunction(name) {
+    // FIXME: error check
+    return env.qmakeReplaceFuncs[name];
+}
+
+// FIXME: eval predefined qmake vars instead of hardcoding them
+// FIXME: add others
+function initBuiltinVars() {
+    env.qmakeVars = {}
+    env.qmakeVars["QMAKE_PLATFORM"] = ["win32"]
+    env.qmakeVars["QT_ARCH"] = ["x86_64"]
+    env.qmakeVars["QMAKE_COMPILER"] = ["msvc"]
+}
+
+function initBuiltinReplaceFunctions() {
+    env.qmakeReplaceFuncs = {}
+    env.qmakeReplaceFuncs["first"] = function(args) { return args[0]; }
+    env.qmakeReplaceFuncs["list"] = function(args) { return [args]; }
+}
+
+function initBuiltinTestFunctions() {
+    // FIXME: implement
+}
+
 }
 
 Start =
-    Statement* {return env; }
+    Statement* { return env; }
 
 Statement
     = Comment
@@ -187,7 +216,6 @@ UserVariableRemovingAssignmentStatement = lvalue:UserVariableIdentifier Removing
 
 // -------------------------------------------------------------------------------------------------
 
-// FIXME: implement qmake replace function result expansion support
 SingleLineExpression = Whitespace* v:(StringList?) !"\\" LineBreak* {
     return v ? v : [""];
 }
@@ -207,29 +235,59 @@ RvalueExpression = v:(SingleLineExpression / MultilineExpression) {
 }
 
 // -------------------------------------------------------------------------------------------------
-
 // qmake variable expansion statement:
 // 1) OUTPUT_LIB = $${BUILD_DIR}/mylib.dll
 // 2) OUTPUT_LIB = $$LIB_NAME
 VariableExpansionExpression = VariableExpansionExpressionEmbed / VariableExpansionExpressionLone
 
-VariableExpansionExpressionEmbed = "$${" id:VariableIdentifier "}" {
+VariableExpansionExpressionEmbed = "$${" id:VariableIdentifier (!"(") "}" {
     if (env.qmakeVars && env.qmakeVars[id])
         return env.qmakeVars[id].join(" ");
     if (env.userVars && env.userVars[id])
         return env.userVars[id].join(" ");
-    error("Variable " + id + " was not found");
+    error("1) Variable " + id + " was not defined");
     return "";
 }
 
-VariableExpansionExpressionLone = "$$" id:VariableIdentifier {
+VariableExpansionExpressionLone = "$$" id:VariableIdentifier (!"(") {
     if (env.qmakeVars && env.qmakeVars[id])
         return env.qmakeVars[id].join(" ");
     if (env.userVars && env.userVars[id])
         return env.userVars[id].join(" ");
-    error("Variable " + id + " was not found");
+    error("2) Variable " + id + " was not defined");
     return "";
 }
+
+// -------------------------------------------------------------------------------------------------
+// qmake replace function result expansion statement:
+// 1) APP_PLATFORM = $$first($$list($$QMAKE_PLATFORM))
+// 2) APP_PLATFORM = $${first($${list($$QMAKE_PLATFORM)})}
+FunctionExpansionExpression
+    = ReplaceFunctionExpansionExpression / TestFunctionExpansionExpression
+
+ReplaceFunctionExpansionExpression
+    = ReplaceFunctionExpansionExpressionEmbed / ReplaceFunctionExpansionExpressionLone
+
+ReplaceFunctionExpansionExpressionEmbed
+    = "FIXME: implement"
+
+ReplaceFunctionExpansionExpressionLone
+    = "$$" id:FunctionIdentifier Whitespace* args:FunctionArguments {
+	//return args;
+    return callFunction(id)(args);
+}
+
+TestFunctionExpansionExpression
+    = "FIXME: implement"
+
+FunctionArguments
+    = EmptyFunctionArgumentsList / FunctionArgumentsList
+EmptyFunctionArgumentsList
+    = "(" Whitespace* ")" { return []; }
+//FunctionArgumentsList
+//    = "(" Whitespace* s:ExpandedString+ Whitespace* ")" { return s; }
+FunctionArgumentsList
+    = "(" Whitespace* s:StringListComma Whitespace* ")" { return s; }
 
 // -------------------------------------------------------------------------------------------------
 
@@ -244,6 +302,20 @@ UserVariableIdentifier
     = !SystemVariableIdentifier id:Identifier {
     return id;
 }
+
+// Functions: qmake replace and test functions and user-defined ones
+FunctionIdentifier = FunctionIdentifierT
+FunctionIdentifierT
+    = SystemReplaceFunctionIdentifier / SystemTestFunctionIdentifier
+    / UserReplaceFunctionIdentifier / UserTestFunctionIdentifier
+
+// FIXME: implement using vars and add other qmake functions
+SystemReplaceFunctionIdentifier = id:("first" / "list") ![_a-zA-Z0-9]+ {
+    return id;
+}
+SystemTestFunctionIdentifier = "FIXME: implement"
+UserReplaceFunctionIdentifier = "FIXME: implement"
+UserTestFunctionIdentifier = "FIXME: implement"
 
 // Assignment operators
 AssignmentOperator = Whitespace* "=" Whitespace*
@@ -260,32 +332,50 @@ Identifier "Identifier" = s1:[_a-zA-Z] s2:[_a-zA-Z0-9]* {
 }
 
 // String list (whitespace-separated)
-ExpandedString
-    = v1:(String / VariableExpansionExpression)
-      v2:(String / VariableExpansionExpression)* {
-    return v1 + v2.join("");
+StringList "Whitespace-separated string list"
+    = v:StringListItemOrString+ {
+    return v;
 }
+
+StringListItemOrString "String followed with whitespace OR String"
+    = StringListItemWithWS / ExpandedString
 
 StringListItemWithWS "String followed with whitespace"
     = v:ExpandedString Whitespace+ {
     return v;
 }
-StringListItemOrString "String followed with whitespace OR String"
-    = StringListItemWithWS / ExpandedString
 
-StringList "String list"
-    = v:StringListItemOrString+ {
+// Function arguments list (comma-separated)
+StringListComma "Comma-separated string list"
+    = v:StringListCommaItemOrString+ {
     return v;
 }
 
-// FIXME: String -> any char before WS+ || \" any char \"
-String "String" = Word
+StringListCommaItemOrString
+    = StringListCommaItemWithComma / ExpandedString
+
+StringListCommaItemWithComma "String followed with comma"
+    = v:ExpandedString Whitespace* Comma Whitespace* {
+    return v;
+}
+
+// String mixed with variable or function expansion statements, e.g. abc$$first($$list(x, y, z))xyz
+ExpandedString "Expanded string"
+    = v1:(String / FunctionExpansionExpression / VariableExpansionExpression)
+      v2:(String / FunctionExpansionExpression / VariableExpansionExpression)* {
+    return v1 + v2.join("");
+}
+
+// FIXME: implement enquoted string support
+String "String" = $AnyCharacter+
 Word = w:Letter+ { return w.join(""); }
 
 // Primitive types
-AnyCharacter = c:[^\r\n\t\"]
+AnyCharacter = [^.,$ \t\r\n\"]
 Letter = c:[a-zA-Z0-9]
 Digit = d:[0-9]
+
+Comma = ","
 
 // Delimeters
 LineBreak "Linebreak" = [\r\n] {
@@ -295,7 +385,3 @@ LineBreak "Linebreak" = [\r\n] {
 Whitespace "Whitespace" = [ \t] {
    return "WS";
 }
-
-//OpenBracket  = Whitespace '(' Whitespace
-//CloseBracket = Whitespace ')' Whitespace
-//QuoteExpr = Whitespace quote:("\"" / "$quot;" / "\xA0") Whitespace
