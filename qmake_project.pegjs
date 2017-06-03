@@ -14,6 +14,7 @@ function callFunction(name) {
 // FIXME: add others
 function initBuiltinVars() {
     env.qmakeVars = {}
+    env.qmakeVars["QT"] = ["core", "gui"]
     env.qmakeVars["QMAKE_PLATFORM"] = ["win32"]
     env.qmakeVars["QT_ARCH"] = ["x86_64"]
     env.qmakeVars["QMAKE_COMPILER"] = ["msvc"]
@@ -48,6 +49,16 @@ GenericAssignmentStatement
     / ConfigAppendingAssignmentStatement
     / ConfigAppendingUniqueAssignmentStatement
     / ConfigRemovingAssignmentStatement
+    // QT
+    / QtAssignmentStatement
+    / QtAppendingAssignmentStatement
+    / QtAppendingUniqueAssignmentStatement
+    / QtRemovingAssignmentStatement
+    // DESTDIR, UI_DIR, OBJECTS_DIR, MOC_DIR
+    / DestdirAssignmentStatement
+    / UiDirAssignmentStatement
+    / ObjectsDirAssignmentStatement
+    / MocDirAssignmentStatement
     // FIXME: add other qmake variables
     / UserVariableAssignmentStatement
     / UserVariableAppendingAssignmentStatement
@@ -81,15 +92,17 @@ TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator r
 
 // -------------------------------------------------------------------------------------------------
 
-// CONFIG = release|debug|debug_and_release|debug_and_release_target(DEFAULT)|build_all|autogen_precompile_source
-//          |ordered|precompile_header|warn_on|warn_off|exceptions|exceptions_off|rtti|rtti_off|stl|stl_off|thread
-//          |c++11|c++14
-//			|create_prl|link_prl
-//			|qt(DEFAULT)|x11|testcase|insignificant_test
-//			|windows|console|shared|dll|static|staticlib|plugin|designer|no_lflags_merge
-//			|flat|embed_manifest_dll|embed_manifest_exe (Windows-only)
-//			|app_bundle|lib_bundle (macOS-only)
-//			|largefile|separate_debug_info (Unix-only)
+// CONFIG =/+=/*=/-=
+//     release|debug|debug_and_release|debug_and_release_target(DEFAULT)
+//    |build_all|autogen_precompile_source|ordered|precompile_header
+//    |warn_on|warn_off|exceptions|exceptions_off|rtti|rtti_off|stl|stl_off|thread
+//    |c++11|c++14
+//    |create_prl|link_prl
+//    |qt(DEFAULT)|x11|testcase|insignificant_test
+//    |windows|console|shared|dll|static|staticlib|plugin|designer|no_lflags_merge
+//    |flat|embed_manifest_dll|embed_manifest_exe (Windows-only)
+//    |app_bundle|lib_bundle (macOS-only)
+//    |largefile|separate_debug_info (Unix-only)
 SystemConfigVariable
     = "CONFIG"
 SystemConfigVariableValueKeyword
@@ -116,17 +129,13 @@ SystemConfigVariableValueList
 
 ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValueList? Whitespace* LineBreak* {
     if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
-    
-    if (!env.qmakeVars)
-        env.qmakeVars = {};
+
     env.qmakeVars[lvalue] = rvalue ? rvalue : "";
     return {name:lvalue, op:"=", value:rvalue};
 }
 
 ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValueList {
     if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
-    if (!env.qmakeVars)
-        env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = [];
     
@@ -136,8 +145,6 @@ ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssign
 
 ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValueList {
     if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
-    if (!env.qmakeVars)
-        env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = rvalue;
 
@@ -145,7 +152,7 @@ ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable Appending
         if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
             env.qmakeVars[lvalue].push(rvalue[i]);
     }
-    return {name:"CONFIG", op:"*=", value:rvalue};
+    return {name:lvalue, op:"*=", value:rvalue};
 }
 
 ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValueList {
@@ -153,13 +160,130 @@ ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignme
     if (!env.qmakeVars)
         env.qmakeVars = {};
     if (!env.qmakeVars[lvalue])
-    	return undefined;
+        return undefined;
     
     // Search for rvalue in the array and remove all occurences
     for (var i = 0; i < rvalue.length; ++i) {
-	    env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
+        env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
     }
-    return {name:"CONFIG", op:"-=", value:rvalue};
+    return {name:lvalue, op:"-=", value:rvalue};
+}
+
+// -------------------------------------------------------------------------------------------------
+
+// QT =/+=/*=/-=
+//    // Qt Essentials
+//    core gui widgets network multimedia sql testlib multimediawidgets qml quick
+//    // Qt Add-Ons
+//    axcontainer axserver
+//    3dcore 3drender 3dinput 3dlogic 3dextras
+//    enginio androidextras bluetooth concurrent dbus location
+//    macextras nfc opengl positioning printsupport purchasing
+//    quickcontrols2 quickwidgets script scripttools scxml
+//    sensors serialbus serialport svg webchannel webengine websockets webview
+//    winextras x11extras xml xmlpatterns charts datavisualization
+
+SystemQtVariable
+    = "QT"
+SystemQtVariableValueKeyword
+    = "core" / "gui" / "widgets" / "network" / "sql" / "testlib"
+    / "quickcontrols2" / "quickwidgets" / "qml" / "quick"
+    / "multimediawidgets" / "multimedia"
+    / "axcontainer" / "axserver"
+    / "3dcore" / "3drender" / "3dinput" / "3dlogic" / "3dextras"
+    / "enginio" / "androidextras" / "bluetooth" / "concurrent" / "dbus" / "location"
+    / "macextras" / "nfc" / "opengl" / "positioning" / "printsupport" / "purchasing"
+    / "scripttools" / "script" / "scxml"
+    / "sensors" / "serialport" / "serialbus" / "svg"
+    / "webchannel" / "webengine" / "websockets" / "webview"
+    / "winextras" / "x11extras" / "xmlpatterns" / "xml"
+    / "charts" / "datavisualization"
+SystemQtVariableValueKeywordWithWS
+    = v:SystemQtVariableValueKeyword Whitespace+ {
+    return v;
+}
+SystemQtVariableSingleValueOrList
+    = SystemQtVariableValueKeywordWithWS / SystemQtVariableValueKeyword
+
+SystemQtVariableValueList
+    = v:SystemQtVariableSingleValueOrList+ LineBreak+ {
+    return v;
+}
+
+QtAssignmentStatement = lvalue:SystemQtVariable AssignmentOperator rvalue:SystemQtVariableValueList? Whitespace* LineBreak* {
+    if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
+
+    env.qmakeVars[lvalue] = rvalue ? rvalue : "";
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+QtAppendingAssignmentStatement = lvalue:SystemQtVariable AppendingAssignmentOperator rvalue:SystemQtVariableValueList {
+    if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
+    if (!env.qmakeVars[lvalue])
+        env.qmakeVars[lvalue] = [];
+    
+    env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
+    return {name:lvalue, op:"+=", value:rvalue};
+}
+
+QtAppendingUniqueAssignmentStatement = lvalue:SystemQtVariable AppendingUniqueAssignmentOperator rvalue:SystemQtVariableValueList {
+    if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
+    if (!env.qmakeVars[lvalue])
+        env.qmakeVars[lvalue] = rvalue;
+
+    for (var i = 0; i < rvalue.length; ++i) {
+        if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
+            env.qmakeVars[lvalue].push(rvalue[i]);
+    }
+    return {name:lvalue, op:"*=", value:rvalue};
+}
+
+QtRemovingAssignmentStatement = lvalue:SystemQtVariable RemovingAssignmentOperator rvalue:SystemQtVariableValueList {
+    if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
+    if (!env.qmakeVars[lvalue])
+        return undefined;
+    
+    // Search for rvalue in the array and remove all occurences
+    for (var i = 0; i < rvalue.length; ++i) {
+        env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
+    }
+    return {name:lvalue, op:"-=", value:rvalue};
+}
+
+// -------------------------------------------------------------------------------------------------
+
+DirAssignmentRvalueTail
+    = AssignmentOperator rvalue:RvalueExpression Whitespace* LineBreak* {
+    // FIXME: check directory existance
+    return rvalue;
+}
+
+// DESTDIR = __BUILD__/client/$${buildmode}/$${APP_PLATFORM}-$${APP_ARCH}-$${APP_COMPILER}
+DestdirAssignmentStatement
+    = lvalue:"DESTDIR" rvalue:DirAssignmentRvalueTail {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// UI_DIR = $${APP_BUILD_DIR}
+UiDirAssignmentStatement
+    = lvalue:"UI_DIR" rvalue:DirAssignmentRvalueTail {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// OBJECTS_DIR = $${APP_BUILD_DIR}
+ObjectsDirAssignmentStatement
+    = lvalue:"OBJECTS_DIR" rvalue:DirAssignmentRvalueTail {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// MOC_DIR = $${APP_BUILD_DIR}
+MocDirAssignmentStatement
+    = lvalue:"MOC_DIR" rvalue:DirAssignmentRvalueTail {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
 }
 
 // -------------------------------------------------------------------------------------------------
