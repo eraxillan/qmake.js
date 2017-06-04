@@ -1,6 +1,6 @@
 
 ----------------------------------------------------------------------------------------------------
-Variable and function expansion test (single-line)
+#Variable and function expansion test (single-line)
 var = 123
 
 f1 = $$first(  )

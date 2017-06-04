@@ -1,0 +1,38 @@
+{
+  "name": "qmake-project-parser",
+  "version": "0.0.1",
+  "description": "qmake project file (*.pro) parser for JavaScript created using PEG.js",
+  "main": "frontend.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "./node_modules/.bin/pegjs --trace -o parser.js ./qmake_project.pegjs",
+    "test": "./node_modules/.bin/jasmine-node ./test/ --verbose",
+    "prepublish": "npm run-script build && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/eraxillan/qmake-project-parser.git"
+  },
+  "keywords": [
+    "qt",
+    "pro",
+    "qmake",
+    "project",
+    "parser",
+    "pegjs"
+  ],
+  "author": "Alexander Kamyshnikov <axill777@gmail.com>",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/eraxillan/qmake-project-parser/issues"
+  },
+  "devDependencies": {
+    "pegjs": "0.10.x",
+    "jasmine-node": "1.14.x"
+  },
+  "dependencies": {
+    "winston": "^2.3.1"
+  }
+}

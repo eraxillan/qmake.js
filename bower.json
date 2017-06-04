@@ -1,0 +1,10 @@
+{
+  "name": "qmake-project-parser",
+  "version": "0.0.1",
+  "description": "A JavaScript parser for Qt qmake project files (*.pro)",
+  "license": "LGPL-3.0",
+  "private": true,
+  "main": [
+    "./frontend.js"
+  ]
+}
