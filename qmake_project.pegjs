@@ -349,6 +349,8 @@ MultilineExpression_2 = Whitespace* v:StringList  "\\"? LineBreak* { return v; }
 MultilineExpression = v1:MultilineExpression_1
                       v2:MultilineExpression_2* {
     var result = v1;
+    if (!result)
+        result = [];
     for (var i = 0; i < v2.length; ++i)
         result = result.concat(v2[i]);
     return result;
@@ -442,12 +444,16 @@ UserReplaceFunctionIdentifier = "FIXME: implement"
 UserTestFunctionIdentifier = "FIXME: implement"
 
 // Assignment operators
-AssignmentOperator = Whitespace* "=" Whitespace*
-AppendingAssignmentOperator = Whitespace* "+=" Whitespace*              // DEFINES += USE_MY_STUFF
-AppendingUniqueAssignmentOperator = Whitespace*  "*=" Whitespace*       // DEFINES *= USE_MY_STUFF
-RemovingAssignmentOperator = Whitespace* "-=" Whitespace*               // DEFINES -= USE_MY_STUFF
+AssignmentOperator "assignment operator ('=')"
+    = Whitespace* "=" Whitespace*       // TEMPLATE = app
+AppendingAssignmentOperator "appending assignment operator ('+=')"
+    = Whitespace* "+=" Whitespace*      // DEFINES += USE_MY_STUFF
+AppendingUniqueAssignmentOperator "appending unique assignment operator ('*=')"
+    = Whitespace* "*=" Whitespace*      // DEFINES *= USE_MY_STUFF
+RemovingAssignmentOperator "removing assignment operator ('-=')"
+    = Whitespace* "-=" Whitespace*      // DEFINES -= USE_MY_STUFF
 // TODO: "~=" qmake operator support
-//ReplacingAssignmentOperator = "~="            // DEFINES ~= s/QT_[DT].+/QT
+//ReplacingAssignmentOperator = "~="    // DEFINES ~= s/QT_[DT].+/QT
 
 // Identifiers
 // NOTE: variable name must start from letter of underscope
@@ -495,7 +501,9 @@ String "String" = $AnyCharacter+
 Word = w:Letter+ { return w.join(""); }
 
 // Primitive types
-AnyCharacter = [^.,$ \t\r\n\"]
+// FIXME:  investigate whether several string types are required - raw, word, file name, etc.
+AnyCharacter = [^,$ \t\r\n\"\\]
+
 Letter = c:[a-zA-Z0-9]
 Digit = d:[0-9]
 
