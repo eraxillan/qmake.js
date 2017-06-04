@@ -14,10 +14,23 @@ function callFunction(name) {
 // FIXME: add others
 function initBuiltinVars() {
     env.qmakeVars = {}
-    env.qmakeVars["QT"] = ["core", "gui"]
-    env.qmakeVars["QMAKE_PLATFORM"] = ["win32"]
-    env.qmakeVars["QT_ARCH"] = ["x86_64"]
-    env.qmakeVars["QMAKE_COMPILER"] = ["msvc"]
+    env.qmakeVars["QT"] = ["core", "gui"];
+    env.qmakeVars["QMAKE_PLATFORM"] = ["win32"];
+    env.qmakeVars["QT_ARCH"] = ["x86_64"];
+    env.qmakeVars["QMAKE_COMPILER"] = ["msvc"];
+    // Input source code
+    env.qmakeVars["HEADERS"] = [];
+    env.qmakeVars["SOURCES"] = [];
+    env.qmakeVars["LEXSOURCES"] = [];
+    env.qmakeVars["YACCSOURCES"] = [];
+    env.qmakeVars["FORMS"] = [];
+    env.qmakeVars["RESOURCES"] = [];
+    env.qmakeVars["TRANSLATIONS"] = [];
+    // Output directories for generated files
+    env.qmakeVars["DESTDIR"] = [];
+    env.qmakeVars["UI_DIR"] = [];
+    env.qmakeVars["OBJECTS_DIR"] = [];
+    env.qmakeVars["MOC_DIR"] = [];
 }
 
 function initBuiltinReplaceFunctions() {
@@ -54,11 +67,19 @@ GenericAssignmentStatement
     / QtAppendingAssignmentStatement
     / QtAppendingUniqueAssignmentStatement
     / QtRemovingAssignmentStatement
-    // DESTDIR, UI_DIR, OBJECTS_DIR, MOC_DIR
-    / DestdirAssignmentStatement
-    / UiDirAssignmentStatement
-    / ObjectsDirAssignmentStatement
-    / MocDirAssignmentStatement
+    // Input source code
+    / HeadersAssignmentStatement       // HEADERS
+    / SourcesAssignmentStatement       // SOURCES
+    / LexSourcesAssignmentStatement    // LEXSOURCES
+    / YaccSourcesAssignmentStatement   // YACCSOURCES
+    / FormsAssignmentStatement         // FORMS
+    / ResourcesAssignmentStatement     // RESOURCES
+    / TranslationsAssignmentStatement  // TRANSLATIONS
+    // Output directories for generated files
+    / DestdirAssignmentStatement       // DESTDIR
+    / UiDirAssignmentStatement         // UI_DIR
+    / ObjectsDirAssignmentStatement    // OBJECTS_DIR
+    / MocDirAssignmentStatement        // MOC_DIR
     // FIXME: add other qmake variables
     / UserVariableAssignmentStatement
     / UserVariableAppendingAssignmentStatement
@@ -249,6 +270,145 @@ QtRemovingAssignmentStatement = lvalue:SystemQtVariable RemovingAssignmentOperat
     }
     return {name:lvalue, op:"-=", value:rvalue};
 }
+
+// -------------------------------------------------------------------------------------------------
+
+// HEADERS =/+=/*=/-= common.h lib1.h lib2.h backend.h
+
+// HEADERS = common.h lib1.h lib2.h backend.h
+HeadersBuiltinVariable = "HEADERS"
+HeadersAssignmentStatement
+    = lvalue:HeadersBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// HEADERS += common.h lib1.h lib2.h backend.h
+// FIXME: implement
+
+// HEADERS *= common.h lib1.h lib2.h backend.h
+// FIXME: implement
+
+// HEADERS -= common.h lib1.h lib2.h backend.h
+// FIXME: implement
+
+// SOURCES =/+=/*=/-= common.cpp backend.cpp
+// FIXME: implement
+
+// SOURCES = common.cpp backend.cpp
+SourcesBuiltinVariable = "SOURCES"
+SourcesAssignmentStatement
+    = lvalue:SourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// SOURCES += common.cpp backend.cpp
+// FIXME: implement
+
+// SOURCES *= common.cpp backend.cpp
+// FIXME: implement
+
+// SOURCES -= common.cpp backend.cpp
+// FIXME: implement
+
+// LEXSOURCES =/+=/*=/-= lexer_1.l lexer_2.l lexer_3.l
+
+// LEXSOURCES = lexer_1.l lexer_2.l lexer_3.l
+LexSourcesBuiltinVariable = "LEXSOURCES"
+LexSourcesAssignmentStatement
+    = lvalue:LexSourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// LEXSOURCES += lexer_1.l lexer_2.l lexer_3.l
+// FIXME: implement
+
+// LEXSOURCES *= lexer_1.l lexer_2.l lexer_3.l
+// FIXME: implement
+
+// LEXSOURCES -= lexer_1.l lexer_2.l lexer_3.l
+// FIXME: implement
+
+// YACCSOURCES =/+=/*=/-= moc.y js.y
+// FIXME: implement
+
+// YACCSOURCES = moc.y js.y
+YaccSourcesBuiltinVariable = "YACCSOURCES"
+YaccSourcesAssignmentStatement
+    = lvalue:YaccSourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// YACCSOURCES += moc.y js.y
+// FIXME: implement
+
+// YACCSOURCES *= moc.y js.y
+// FIXME: implement
+
+// YACCSOURCES -= moc.y js.y
+// FIXME: implement
+
+// FORMS =/+=/*=/-= mydialog.ui mywidget.ui myconfig.ui
+// FIXME: implement
+
+// FORMS = mydialog.ui mywidget.ui myconfig.ui
+FormsBuiltinVariable = "FORMS"
+FormsAssignmentStatement
+    = lvalue:FormsBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// FORMS += mydialog.ui mywidget.ui myconfig.ui
+// FIXME: implement
+
+// FORMS *= mydialog.ui mywidget.ui myconfig.ui
+// FIXME: implement
+
+// FORMS -= mydialog.ui mywidget.ui myconfig.ui
+
+// RESOURCES =/+=/*=/-= icons.qrc strings.qrc
+// FIXME: implement
+
+// RESOURCES = icons.qrc strings.qrc
+ResourcesBuiltinVariable = "RESOURCES"
+ResourcesAssignmentStatement
+    = lvalue:ResourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// RESOURCES += icons.qrc strings.qrc
+// FIXME: implement
+
+// RESOURCES *= icons.qrc strings.qrc
+// FIXME: implement
+
+// RESOURCES -= icons.qrc strings.qrc
+// FIXME: implement
+
+// TRANSLATIONS =/+=/*=/-= en.ts ru.ts es.ts
+// FIXME: implement
+
+// TRANSLATIONS = en.ts ru.ts es.ts
+TranslationsBuiltinVariable = "TRANSLATIONS"
+TranslationsAssignmentStatement
+    = lvalue:TranslationsBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    env.qmakeVars[lvalue] = rvalue;
+    return {name:lvalue, op:"=", value:rvalue};
+}
+
+// TRANSLATIONS += en.ts ru.ts es.ts
+// FIXME: implement
+
+// TRANSLATIONS *= en.ts ru.ts es.ts
+// FIXME: implement
+
+// TRANSLATIONS -= en.ts ru.ts es.ts
+// FIXME: implement
 
 // -------------------------------------------------------------------------------------------------
 
