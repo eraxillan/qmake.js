@@ -1,6 +1,8 @@
 #Variable and function expansion test (single-line)
 var = 123
 
+empty_var = 
+
 f1 = $$first(  )
 f2 = $$first( xyz, abc )
 f3 = $$first( $$var )
