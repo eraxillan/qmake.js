@@ -1,0 +1,1 @@
+TEMPLATE = vcapp
