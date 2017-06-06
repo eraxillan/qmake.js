@@ -46,11 +46,24 @@ function initBuiltinVars() {
     env.qmakeVars["RESOURCES"] = [];
     env.qmakeVars["TRANSLATIONS"] = [];
     
+    // FIXME: implement grammar rules for vars below
+    // Input libraries
+    env.qmakeVars["LIBS"] = []
+    // Input headers directories
+    env.qmakeVars["INCLUDEPATH"] = []
+    // Input compiler flags
+    env.qmakeVars["DEFINES"] = []
+    // Input linker flags
+    env.qmakeVars["QMAKE_LFLAGS_DEBUG"] = []
+    
     // Output directories for generated files
     env.qmakeVars["DESTDIR"] = [];
     env.qmakeVars["UI_DIR"] = [];
     env.qmakeVars["OBJECTS_DIR"] = [];
     env.qmakeVars["MOC_DIR"] = [];
+    
+    // qmake directories
+    env.qmakeVars["PWD"] = "FIXME: implement";
 
     // FIXME: implement and remove stub values
     env.qmakeVars["QMAKE_PLATFORM"] = ["win32"];
@@ -133,9 +146,9 @@ Comment "Comment"
 
 // -------------------------------------------------------------------------------------------------
 
-// TEMPLATE = app|lib|subdirs|aux|vcapp|vclib
+// TEMPLATE = app|lib|aux|subdirs|vcsubdirs|vcapp|vclib
 SystemTemplateVariable = "TEMPLATE"
-SystemTemplateVariableValue = "app" / "lib" / "subdirs" / "aux" / "vcapp" / "vclib"
+SystemTemplateVariableValue = "app" / "lib" / "aux" / "subdirs" / "vcsubdirs" / "vcapp" / "vclib"
 TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator rvalue:SystemTemplateVariableValue Whitespace* LineBreak* {
     env.qmakeVars[lvalue] = rvalue;
     return {name:"TEMPLATE", op:"=", value:rvalue};
