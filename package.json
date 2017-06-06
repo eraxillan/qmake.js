@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "./node_modules/.bin/pegjs --trace -o parser.js ./qmake_project.pegjs",
-    "test": "./node_modules/.bin/jasmine-node ./test/ --verbose",
+    "test": "./node_modules/.bin/mocha",
     "prepublish": "npm run-script build && npm test"
   },
   "repository": {
@@ -29,8 +29,9 @@
     "url": "https://github.com/eraxillan/qmake-project-parser/issues"
   },
   "devDependencies": {
-    "pegjs": "0.10.x",
-    "jasmine-node": "1.14.x"
+    "chai": "^4.0.2",
+    "mocha": "^3.4.2",
+    "pegjs": "0.10.x"
   },
   "dependencies": {
     "winston": "^2.3.1"
