@@ -1,6 +1,9 @@
 {
 var env = {};
+env.qmakeVars = {};
 env.userVars = {};
+env.qmakeReplaceFuncs = {}
+env.qmakeTestFuncs = {}
 
 initBuiltinVars();
 initBuiltinReplaceFunctions();
@@ -11,76 +14,19 @@ function callFunction(name) {
     return env.qmakeReplaceFuncs[name];
 }
 
-// FIXME: eval predefined qmake vars instead of hardcoding them
-// FIXME: add others
 function initBuiltinVars() {
-    env.qmakeVars = {}
-
-    env.qmakeVars["TEMPLATE"] = "app";
-    env.qmakeVars["CONFIG"] = [
-        // FIXME: (Windows + MSVC)-specific values
-        "windows", "win32", "msvc",
-        "flat", "embed_manifest_dll", "embed_manifest_exe",
-        "exceptions", "rtti_off", "warn_on",
-        "no_plugin_manifest", "import_qpa_plugin",
-        "c++11", "shared",
-        //
-        "debug_and_release_target", "debug_and_release", "release",
-        "qmake_use", "qt", "thread",
-        // FIXME: macOS-specific values
-        "app_bundle",
-        "link_prl", "shared",
-        "incremental_off", "incremental",
-        "file_copies", "copy_dir_files",
-        "precompile_header", "autogen_precompile_source",
-        "lex", "yacc", "depend_includepath", "testcase_targets", "import_plugins"
-    ];
-    env.qmakeVars["QT"] = ["core", "gui"];
-
-    // Input source code
-    env.qmakeVars["HEADERS"] = [];
-    env.qmakeVars["SOURCES"] = [];
-    env.qmakeVars["LEXSOURCES"] = [];
-    env.qmakeVars["YACCSOURCES"] = [];
-    env.qmakeVars["FORMS"] = [];
-    env.qmakeVars["RESOURCES"] = [];
-    env.qmakeVars["TRANSLATIONS"] = [];
-    
-    // FIXME: implement grammar rules for vars below
-    // Input libraries
-    env.qmakeVars["LIBS"] = []
-    // Input headers directories
-    env.qmakeVars["INCLUDEPATH"] = []
-    // Input compiler flags
-    env.qmakeVars["DEFINES"] = []
-    // Input linker flags
-    env.qmakeVars["QMAKE_LFLAGS_DEBUG"] = []
-    
-    // Output directories for generated files
-    env.qmakeVars["DESTDIR"] = [];
-    env.qmakeVars["UI_DIR"] = [];
-    env.qmakeVars["OBJECTS_DIR"] = [];
-    env.qmakeVars["MOC_DIR"] = [];
-    
-    // qmake directories
-    env.qmakeVars["PWD"] = "FIXME: implement";
-
-    // FIXME: implement and remove stub values
-    env.qmakeVars["QMAKE_PLATFORM"] = ["win32"];
-    env.qmakeVars["QT_ARCH"] = ["x86_64"];
-    env.qmakeVars["QMAKE_COMPILER"] = ["msvc"];
-
-    // FIXME: init other qmake variables
+    const initializer = require("./qmakeVarsInit");
+    env.qmakeVars = initializer.qmakeVars();
 }
 
 function initBuiltinReplaceFunctions() {
-    env.qmakeReplaceFuncs = {}
-    env.qmakeReplaceFuncs["first"] = function(args) { return args[0]; }
-    env.qmakeReplaceFuncs["list"] = function(args) { return [args]; }
+    const initializer = require("./qmakeFunctionsInit");
+    env.qmakeReplaceFuncs = initializer.qmakeFunctions().replaceFunctions;
 }
 
 function initBuiltinTestFunctions() {
-    // FIXME: implement
+    const initializer = require("./qmakeFunctionsInit");
+    env.qmakeTestFuncs = initializer.qmakeFunctions().testFunctions;
 }
 
 function assignVariable(dict, name, value) {
