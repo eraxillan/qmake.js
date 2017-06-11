@@ -40,14 +40,14 @@ Start =
     Statement* { return env; }
 
 Statement
-    = Comment
+    = EmptyString
+    / Comment
     / GenericAssignmentStatementT
 
 GenericAssignmentStatementT = Whitespace* GenericAssignmentStatement Whitespace*
 GenericAssignmentStatement
-    = EmptyString
     // TEMPLATE
-    / TemplateAssignmentStatement
+    = TemplateAssignmentStatement
     // CONFIG
     / ConfigAssignmentStatement
     / ConfigAppendingAssignmentStatement

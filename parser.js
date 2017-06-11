@@ -812,9 +812,12 @@ function peg$parse(input, options) {
       location: peg$computeLocation(startPos, startPos)
     });
 
-    s0 = peg$parseComment();
+    s0 = peg$parseEmptyString();
     if (s0 === peg$FAILED) {
-      s0 = peg$parseGenericAssignmentStatementT();
+      s0 = peg$parseComment();
+      if (s0 === peg$FAILED) {
+        s0 = peg$parseGenericAssignmentStatementT();
+      }
     }
 
     if (s0 !== peg$FAILED) {
@@ -905,56 +908,53 @@ function peg$parse(input, options) {
       location: peg$computeLocation(startPos, startPos)
     });
 
-    s0 = peg$parseEmptyString();
+    s0 = peg$parseTemplateAssignmentStatement();
     if (s0 === peg$FAILED) {
-      s0 = peg$parseTemplateAssignmentStatement();
+      s0 = peg$parseConfigAssignmentStatement();
       if (s0 === peg$FAILED) {
-        s0 = peg$parseConfigAssignmentStatement();
+        s0 = peg$parseConfigAppendingAssignmentStatement();
         if (s0 === peg$FAILED) {
-          s0 = peg$parseConfigAppendingAssignmentStatement();
+          s0 = peg$parseConfigAppendingUniqueAssignmentStatement();
           if (s0 === peg$FAILED) {
-            s0 = peg$parseConfigAppendingUniqueAssignmentStatement();
+            s0 = peg$parseConfigRemovingAssignmentStatement();
             if (s0 === peg$FAILED) {
-              s0 = peg$parseConfigRemovingAssignmentStatement();
+              s0 = peg$parseQtAssignmentStatement();
               if (s0 === peg$FAILED) {
-                s0 = peg$parseQtAssignmentStatement();
+                s0 = peg$parseQtAppendingAssignmentStatement();
                 if (s0 === peg$FAILED) {
-                  s0 = peg$parseQtAppendingAssignmentStatement();
+                  s0 = peg$parseQtAppendingUniqueAssignmentStatement();
                   if (s0 === peg$FAILED) {
-                    s0 = peg$parseQtAppendingUniqueAssignmentStatement();
+                    s0 = peg$parseQtRemovingAssignmentStatement();
                     if (s0 === peg$FAILED) {
-                      s0 = peg$parseQtRemovingAssignmentStatement();
+                      s0 = peg$parseHeadersAssignmentStatement();
                       if (s0 === peg$FAILED) {
-                        s0 = peg$parseHeadersAssignmentStatement();
+                        s0 = peg$parseSourcesAssignmentStatement();
                         if (s0 === peg$FAILED) {
-                          s0 = peg$parseSourcesAssignmentStatement();
+                          s0 = peg$parseLexSourcesAssignmentStatement();
                           if (s0 === peg$FAILED) {
-                            s0 = peg$parseLexSourcesAssignmentStatement();
+                            s0 = peg$parseYaccSourcesAssignmentStatement();
                             if (s0 === peg$FAILED) {
-                              s0 = peg$parseYaccSourcesAssignmentStatement();
+                              s0 = peg$parseFormsAssignmentStatement();
                               if (s0 === peg$FAILED) {
-                                s0 = peg$parseFormsAssignmentStatement();
+                                s0 = peg$parseResourcesAssignmentStatement();
                                 if (s0 === peg$FAILED) {
-                                  s0 = peg$parseResourcesAssignmentStatement();
+                                  s0 = peg$parseTranslationsAssignmentStatement();
                                   if (s0 === peg$FAILED) {
-                                    s0 = peg$parseTranslationsAssignmentStatement();
+                                    s0 = peg$parseDestdirAssignmentStatement();
                                     if (s0 === peg$FAILED) {
-                                      s0 = peg$parseDestdirAssignmentStatement();
+                                      s0 = peg$parseUiDirAssignmentStatement();
                                       if (s0 === peg$FAILED) {
-                                        s0 = peg$parseUiDirAssignmentStatement();
+                                        s0 = peg$parseObjectsDirAssignmentStatement();
                                         if (s0 === peg$FAILED) {
-                                          s0 = peg$parseObjectsDirAssignmentStatement();
+                                          s0 = peg$parseMocDirAssignmentStatement();
                                           if (s0 === peg$FAILED) {
-                                            s0 = peg$parseMocDirAssignmentStatement();
+                                            s0 = peg$parseUserVariableAssignmentStatement();
                                             if (s0 === peg$FAILED) {
-                                              s0 = peg$parseUserVariableAssignmentStatement();
+                                              s0 = peg$parseUserVariableAppendingAssignmentStatement();
                                               if (s0 === peg$FAILED) {
-                                                s0 = peg$parseUserVariableAppendingAssignmentStatement();
+                                                s0 = peg$parseUserVariableAppendingUniqueAssignmentStatement();
                                                 if (s0 === peg$FAILED) {
-                                                  s0 = peg$parseUserVariableAppendingUniqueAssignmentStatement();
-                                                  if (s0 === peg$FAILED) {
-                                                    s0 = peg$parseUserVariableRemovingAssignmentStatement();
-                                                  }
+                                                  s0 = peg$parseUserVariableRemovingAssignmentStatement();
                                                 }
                                               }
                                             }
