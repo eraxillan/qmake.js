@@ -617,22 +617,69 @@ StringListCommaItemWithComma "String followed with comma"
 }
 
 // String mixed with variable or function expansion statements, e.g. abc$$first($$list(x, y, z))xyz
-ExpandedString "Expanded string"
+ExpandedString
+    = EnquotedExpandedString / ExpandedStringRaw
+
+ExpandedStringRaw "Expanded string"
     = v1:(String / FunctionExpansionExpression / VariableExpansionExpression)
       v2:(String / FunctionExpansionExpression / VariableExpansionExpression)* {
     return v1 + v2.join("");
 }
 
-// FIXME: implement enquoted string support
-String "String" = $AnyCharacter+
-Word = w:Letter+ { return w.join(""); }
+// TODO: does qmake support single quotes?
+EnquotedExpandedString
+    = '"' v1:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)
+          v2:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)* '"' {
+    return v1 + v2.join("");
+}
+
+String "String without whitespaces"
+    = chars:NonWhitespaceCharacter+ { return chars.join(''); }
+
+EnquotedString "String inside quotes"
+    = chars:AnyCharacter+ { return chars.join(''); }
+
+//Word = w:Letter+ { return w.join(""); }
 
 // Primitive types
 // FIXME:  investigate whether several string types are required - raw, word, file name, etc.
-AnyCharacter = [^,$ \t\r\n\"\\]
+// Any character what can be used inside of whitespace/comma-separated string list item,
+// without quotes
+NonWhitespaceCharacter
+    = !("#" / "," / "$" / ' ' / '\t' / '\r' / '\n' / "\\" / '"' / "'") char:. { return char; }
+    / "\\" sequence:EscapeSequence { return sequence; }
 
-Letter = c:[a-zA-Z0-9]
-Digit = d:[0-9]
+AnyCharacter
+    = !("#" / "," / "$" / "\\" / '"' / "'") char:. { return char; }
+    / "\\" sequence:EscapeSequence { return sequence; }
+
+EscapeSequence
+    = "'"
+    / '"'
+    / "\\"
+    / "?"  { return "\?";   }
+    / "a"  { return "\a";   }
+    / "x" digits:$(HexDigit HexDigit HexDigit HexDigit) {
+        return String.fromCharCode(parseInt(digits, 16));
+    }
+    / digits:$(OctDigit OctDigit OctDigit) {
+        return String.fromCharCode(parseInt(digits, 8));
+    }
+    / "x" digits:$(HexDigit HexDigit) {
+        return String.fromCharCode(parseInt(digits, 16));
+    }
+    / "b"  { return "\b";   }
+    / "f"  { return "\f";   }
+    / "n"  { return "\n";   }
+    / "r"  { return "\r";   }
+    / "t"  { return "\t";   }
+    / "v"  { return "\x0B"; }
+
+Letter = c:[a-zA-Z]
+
+OctDigit = d:[0-7]
+DecDigit = d:[0-9]
+HexDigit = d:[0-9a-fA-F]
 
 Comma = ","
 
