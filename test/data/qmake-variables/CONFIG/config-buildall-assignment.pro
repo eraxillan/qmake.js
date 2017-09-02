@@ -1,0 +1,1 @@
+CONFIG = build_all

@@ -1,0 +1,1 @@
+CONFIG = rtti_off
