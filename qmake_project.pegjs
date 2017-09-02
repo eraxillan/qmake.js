@@ -34,17 +34,44 @@ function assignVariable(dict, name, value) {
     return {name:name, op:"=", value:value};
 }
 
+function arrayContainsOnly(testArray, referenceArray) {
+    // TODO: handle corner cases
+    
+    if (testArray && (testArray.length > 0)) {
+        for (var i = 0; i < testArray.length; i++) {
+            var found = false;
+            for (var j = 0; j < referenceArray.length; j++) {
+                if (testArray[i] == referenceArray[j]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                console.log("arrayContainsOnly: absent value " + testArray[i]);
+                return false;
+            }
+        }
+    }
+    return true;
 }
+
+}
+
+// -------------------------------------------------------------------------------------------------
 
 Start =
     Statement* { return env; }
 
+// FIXME: implement function call statement, e.g. include(settings.pri)
 Statement
     = EmptyString
     / Comment
     / GenericAssignmentStatementT
+//    / GenericConditionalStatementT
 
-GenericAssignmentStatementT = Whitespace* GenericAssignmentStatement Whitespace*
+GenericAssignmentStatementT
+    = Whitespace* s:GenericAssignmentStatement Whitespace* { return s; }
+
 GenericAssignmentStatement
     // TEMPLATE
     = TemplateAssignmentStatement
@@ -76,6 +103,10 @@ GenericAssignmentStatement
     / UserVariableAppendingAssignmentStatement
     / UserVariableAppendingUniqueAssignmentStatement
     / UserVariableRemovingAssignmentStatement
+
+// -------------------------------------------------------------------------------------------------
+
+// FIXME: scope statement
 
 // -------------------------------------------------------------------------------------------------
 
@@ -137,11 +168,26 @@ SystemConfigVariableValueList
     return v;
 }
 
-ConfigAssignmentStatement = lvalue:SystemConfigVariable AssignmentOperator rvalue:SystemConfigVariableValueList? Whitespace* LineBreak* {
-    if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
+ConfigAssignmentStatement
+    = lvalue:SystemConfigVariable AssignmentOperator rvalue:RvalueExpression? Whitespace* LineBreak* {
+    if (!(rvalue instanceof Array))
+        error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
+    
+    var validValues = ["release", "debug", "debug_and_release", "debug_and_release_target",
+                "build_all", "autogen_precompile_source", "ordered", "precompile_header",
+                "warn_on", "warn_off", "exceptions", "exceptions_off", "rtti", "rtti_off", "stl", "stl_off", "thread",
+                "c++11", "c++14",
+                "create_prl", "link_prl",
+                "qt", "x11", "testcase", "insignificant_test",
+                "windows", "console", "shared", "dll", "static", "staticlib", "plugin", "designer", "no_lflags_merge",
+                "flat", "embed_manifest_dll", "embed_manifest_exe",
+                "app_bundle", "lib_bundle",
+                "largefile", "separate_debug_info"];
 
-    env.qmakeVars[lvalue] = rvalue ? rvalue : "";
-    return {name:lvalue, op:"=", value:rvalue};
+    if (!arrayContainsOnly(rvalue, validValues))
+        error("ConfigAssignmentStatement: invalid CONFIG value");
+
+    return assignVariable(env.qmakeVars, lvalue, rvalue ? rvalue : "");
 }
 
 ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValueList {
@@ -457,7 +503,7 @@ UserVariableRemovingAssignmentStatement = lvalue:UserVariableIdentifier Removing
     if (!env.userVars[lvalue])
         return undefined;
     if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
-    
+
     // Search for rvalue in the array and remove all occurences
     for (var i = 0; i < rvalue.length; ++i) {
         env.userVars[lvalue] = env.userVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
@@ -467,23 +513,32 @@ UserVariableRemovingAssignmentStatement = lvalue:UserVariableIdentifier Removing
 
 // -------------------------------------------------------------------------------------------------
 
-SingleLineExpression = Whitespace* v:(StringList?) !"\\" LineBreak* {
+SingleLineExpression
+    = Whitespace* v:(StringList?) !"\\" LineBreak* {
     return v ? v : [""];
 }
 
-MultilineExpression_1 = Whitespace* v:StringList? "\\"  LineBreak+ { return v; }
-MultilineExpression_2 = Whitespace* v:StringList  "\\"? LineBreak* { return v; }
-MultilineExpression = v1:MultilineExpression_1
-                      v2:MultilineExpression_2* {
-    var result = v1;
-    if (!result)
-        result = [];
-    for (var i = 0; i < v2.length; ++i)
-        result = result.concat(v2[i]);
+// 1) \ LB
+// 2) v1 v2 \ LB
+// 3) v3 v4 LB
+// 4) X = Y LB
+MultilineExpression_1
+    = Whitespace* v:StringList? "\\" LineBreak+ { return v; }
+MultilineExpression_2
+    = Whitespace* v:StringList? !"\\" LineBreak+ { return v; }
+MultilineExpression
+    = v1:MultilineExpression_1* v2:MultilineExpression_2 {
+    var result = [];
+    for (var i = 0; i < v1.length; ++i) {
+        if (v1[i])
+            result = result.concat(v1[i]);
+    }
+    result = result.concat(v2);
     return result;
 }
 
-RvalueExpression = v:(SingleLineExpression / MultilineExpression) {
+RvalueExpression
+    = v:(SingleLineExpression / MultilineExpression) {
     return v;
 }
 
@@ -491,9 +546,11 @@ RvalueExpression = v:(SingleLineExpression / MultilineExpression) {
 // qmake variable expansion statement:
 // 1) OUTPUT_LIB = $${BUILD_DIR}/mylib.dll
 // 2) OUTPUT_LIB = $$LIB_NAME
-VariableExpansionExpression = VariableExpansionExpressionEmbed / VariableExpansionExpressionLone
+VariableExpansionExpression
+    = VariableExpansionExpressionEmbed / VariableExpansionExpressionLone
 
-VariableExpansionExpressionEmbed = "$${" id:VariableIdentifier (!"(") "}" {
+VariableExpansionExpressionEmbed
+    = "$${" id:VariableIdentifier (!"(") "}" {
     if (env.qmakeVars && env.qmakeVars[id])
         return env.qmakeVars[id].join(" ");
     if (env.userVars && env.userVars[id])
@@ -502,7 +559,8 @@ VariableExpansionExpressionEmbed = "$${" id:VariableIdentifier (!"(") "}" {
     return "";
 }
 
-VariableExpansionExpressionLone = "$$" id:VariableIdentifier (!"(") {
+VariableExpansionExpressionLone
+    = "$$" id:VariableIdentifier (!"(") {
     if (env.qmakeVars && env.qmakeVars[id])
         return env.qmakeVars[id].join(" ");
     if (env.userVars && env.userVars[id])
@@ -526,7 +584,6 @@ ReplaceFunctionExpansionExpressionEmbed
 
 ReplaceFunctionExpansionExpressionLone
     = "$$" id:FunctionIdentifier Whitespace* args:FunctionArguments {
-	//return args;
     return callFunction(id)(args);
 }
 
@@ -545,10 +602,13 @@ FunctionArgumentsList
 // -------------------------------------------------------------------------------------------------
 
 // Variables: qmake and user-defined ones
-VariableIdentifier = VariableIdentifierT
-VariableIdentifierT = SystemVariableIdentifier / UserVariableIdentifier
+VariableIdentifier
+    = VariableIdentifierT
+VariableIdentifierT
+    = SystemVariableIdentifier / UserVariableIdentifier
 
-SystemVariableIdentifier = id:(SystemTemplateVariable / SystemConfigVariable) ![_a-zA-Z0-9]+ {
+SystemVariableIdentifier
+    = id:(SystemTemplateVariable / SystemConfigVariable) ![_a-zA-Z0-9]+ {
    return id;
 }
 UserVariableIdentifier
@@ -563,10 +623,63 @@ FunctionIdentifierT
     / UserReplaceFunctionIdentifier / UserTestFunctionIdentifier
 
 // FIXME: implement using vars and add other qmake functions
-SystemReplaceFunctionIdentifier = id:("first" / "list") ![_a-zA-Z0-9]+ {
+SystemReplaceFunctionIdentifier
+    = id:("first" / "list") ![_a-zA-Z0-9]+ {
     return id;
 }
-SystemTestFunctionIdentifier = "FIXME: implement"
+SystemTestFunctionIdentifier
+    = id:(
+      "cache"                                                                                       // cache(variablename, [set|add|sub] [transient] [super|stash], [source variablename])
+
+    / "CONFIG"                                                                                      // CONFIG(config, [values set])
+
+    / "unset"                                                                                       // unset(variablename)
+    / "export"                                                                                      // export(variablename)
+
+    / "defined"                                                                                     // defined(name[, type])
+    / "equals"                                                                                      // equals(variablename, value)
+    / "contains"                                                                                    // contains(variablename, value)
+    / "count"                                                                                       // count(variablename, number)
+    / "infile"                                                                                      // infile(filename, var, val)
+    / "isActiveConfig"                                                                              // isActiveConfig
+    / "isEmpty"                                                                                     // isEmpty(variablename)
+    / "isEqual"                                                                                     // isEqual
+    
+    / "greaterThan"                                                                                 // greaterThan(variablename, value)
+    / "lessThan"                                                                                    // lessThan(variablename, value)
+    // Evaluation
+    / "eval"                                                                                        // eval(string)
+    // Subprojects
+    / "include"                                                                                     // include(filename)
+    / "load"                                                                                        // load(feature)
+    // Execution flow control
+    / "requires"                                                                                    // requires(condition)
+    / "if"                                                                                          // if(condition)
+    / "for"                                                                                         // for(iterate, list)
+    // File system management
+    / "files"                                                                                       // files(pattern[, recursive=false])
+    / "exists"                                                                                      // exists(filename)
+    / "mkpath"                                                                                      // mkpath(dirPath)
+    / "write_file"                                                                                  // write_file(filename, [variablename, [mode]])
+    / "touch"                                                                                       // touch(filename, reference_filename)
+    // External commands execution
+    / "system"                                                                                      // system(command)
+    // Console output
+    / "debug"                                                                                       // debug(level, message)
+    / "log"                                                                                         // log(message)
+    / "message"                                                                                     // message(string)
+    / "warning"                                                                                     // warning(string)
+    / "error"                                                                                       // error(string)
+    
+    // Test Function Library
+    / "packagesExist"                                                                               // packagesExist(packages)
+    / "prepareRecursiveTarget"                                                                      // prepareRecursiveTarget(target)
+    / "qtCompileTest"                                                                               // qtCompileTest(test)
+    / "qtHaveModule"                                                                                // qtHaveModule(name)
+    ) ![_a-zA-Z0-9]+ {
+    return id;
+}
+
 UserReplaceFunctionIdentifier = "FIXME: implement"
 UserTestFunctionIdentifier = "FIXME: implement"
 
@@ -584,7 +697,8 @@ RemovingAssignmentOperator "removing assignment operator ('-=')"
 
 // Identifiers
 // NOTE: variable name must start from letter of underscope
-Identifier "Identifier" = s1:[_a-zA-Z] s2:[_a-zA-Z0-9]* {
+Identifier "Identifier"
+    = s1:[_a-zA-Z] s2:[_a-zA-Z0-9]* {
     return s1 + s2.join("");
 }
 
@@ -684,10 +798,12 @@ HexDigit = d:[0-9a-fA-F]
 Comma = ","
 
 // Delimeters
-LineBreak "Linebreak" = [\r\n] {
+LineBreak "Linebreak"
+    = [\r\n] {
     return "LB";
 }
 
-Whitespace "Whitespace" = [ \t] {
+Whitespace "Whitespace"
+    = [ \t] {
    return "WS";
 }
