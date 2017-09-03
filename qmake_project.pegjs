@@ -2,8 +2,10 @@
 var env = {};
 env.qmakeVars = {};
 env.userVars = {};
-env.qmakeReplaceFuncs = {}
-env.qmakeTestFuncs = {}
+env.qmakeReplaceFuncs = {};
+env.qmakeTestFuncs = {};
+
+env.configValidValues = [];
 
 initBuiltinVars();
 initBuiltinReplaceFunctions();
@@ -17,6 +19,7 @@ function callFunction(name) {
 function initBuiltinVars() {
     const initializer = require("./qmakeVarsInit");
     env.qmakeVars = initializer.qmakeVars();
+    env.configValidValues = initializer.configValidValues();
 }
 
 function initBuiltinReplaceFunctions() {
@@ -146,63 +149,37 @@ TemplateAssignmentStatement = lvalue:SystemTemplateVariable AssignmentOperator r
 //    |largefile|separate_debug_info (Unix-only)
 SystemConfigVariable
     = "CONFIG"
-SystemConfigVariableValueKeyword
-    = "debug_and_release_target" / "debug_and_release" / "debug" / "release"
-    / "build_all"
-    / "autogen_precompile_source" / "ordered" / "precompile_header"
-    / "warn_off" / "warn_on" / "exceptions_off" / "exceptions" / "rtti_off" / "rtti"
-    / "stl_off" / "stl" / "thread" / "c++11" / "c++14" / "create_prl" / "link_prl"
-    / "qt" / "x11" / "testcase" / "insignificant_test"
-    / "windows" / "console" / "shared" / "dll" / "static" / "staticlib" / "plugin"
-    / "designer" / "no_lflags_merge" / "flat" / "embed_manifest_dll" / "embed_manifest_exe"
-    / "app_bundle" / "lib_bundle" / "largefile" / "separate_debug_info"
-SystemConfigVariableValueKeywordWithWS
-    = v:SystemConfigVariableValueKeyword Whitespace+ {
-    return v;
-}
-SystemConfigVariableSingleValueOrList
-    = SystemConfigVariableValueKeywordWithWS / SystemConfigVariableValueKeyword
-
-SystemConfigVariableValueList
-    = v:SystemConfigVariableSingleValueOrList+ LineBreak+ {
-    return v;
-}
 
 ConfigAssignmentStatement
-    = lvalue:SystemConfigVariable AssignmentOperator rvalue:RvalueExpression? Whitespace* LineBreak* {
+    = lvalue:SystemConfigVariable AssignmentOperator rvalue:RvalueExpression? /*Whitespace* LineBreak* */{
     if (!(rvalue instanceof Array))
         error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
-    
-    var validValues = ["release", "debug", "debug_and_release", "debug_and_release_target",
-                "build_all", "autogen_precompile_source", "ordered", "precompile_header",
-                "warn_on", "warn_off", "exceptions", "exceptions_off", "rtti", "rtti_off", "stl", "stl_off", "thread",
-                "c++11", "c++14",
-                "create_prl", "link_prl",
-                "qt", "x11", "testcase", "insignificant_test",
-                "windows", "console", "shared", "dll", "static", "staticlib", "plugin", "designer", "no_lflags_merge",
-                "flat", "embed_manifest_dll", "embed_manifest_exe",
-                "app_bundle", "lib_bundle",
-                "largefile", "separate_debug_info"];
 
-    if (!arrayContainsOnly(rvalue, validValues))
+    if (!arrayContainsOnly(rvalue, env.configValidValues))
         error("ConfigAssignmentStatement: invalid CONFIG value");
 
     return assignVariable(env.qmakeVars, lvalue, rvalue ? rvalue : "");
 }
 
-ConfigAppendingAssignmentStatement = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:SystemConfigVariableValueList {
-    if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
-    if (!env.qmakeVars[lvalue])
-        env.qmakeVars[lvalue] = [];
-    
+ConfigAppendingAssignmentStatement
+    = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
+    if (!(rvalue instanceof Array))
+        error("qmake '+=' operator rvalue must be a JS Array, but actual type is '" + typeof(rvalue) + "' with value:\n" + rvalue);
+
+    if (!arrayContainsOnly(rvalue, env.configValidValues))
+        error("ConfigAppendingAssignmentStatement: invalid CONFIG value");
+
     env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
     return {name:lvalue, op:"+=", value:rvalue};
 }
 
-ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:SystemConfigVariableValueList {
-    if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
-    if (!env.qmakeVars[lvalue])
-        env.qmakeVars[lvalue] = rvalue;
+ConfigAppendingUniqueAssignmentStatement
+    = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
+    if (!(rvalue instanceof Array))
+        error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
+
+    if (!arrayContainsOnly(rvalue, env.configValidValues))
+        error("ConfigAppendingAssignmentStatement: invalid CONFIG value");
 
     for (var i = 0; i < rvalue.length; ++i) {
         if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
@@ -211,11 +188,15 @@ ConfigAppendingUniqueAssignmentStatement = lvalue:SystemConfigVariable Appending
     return {name:lvalue, op:"*=", value:rvalue};
 }
 
-ConfigRemovingAssignmentStatement = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:SystemConfigVariableValueList {
+ConfigRemovingAssignmentStatement
+    = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
     if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         return undefined;
-    
+
+    if (!arrayContainsOnly(rvalue, env.configValidValues))
+        error("ConfigAppendingAssignmentStatement: invalid CONFIG value");
+
     // Search for rvalue in the array and remove all occurences
     for (var i = 0; i < rvalue.length; ++i) {
         env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });

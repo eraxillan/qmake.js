@@ -391,7 +391,11 @@ describe("qmake built-in variables test", function() {
         it('valid CONFIG+=release debug ... separate_debug_info assignment statement', function() {
             var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/CONFIG/config-appending-assignment.pro");
             assert.equal(true,  parserOutput.result);
-            assert.sameMembers(["release", "debug", "debug_and_release", "debug_and_release_target",
+            assert.sameMembers([
+                "win32", "msvc", "no_plugin_manifest", "import_qpa_plugin", "qmake_use",
+                "incremental_off", "incremental", "file_copies", "copy_dir_files", "lex", "yacc",
+                "depend_includepath", "testcase_targets", "import_plugins",
+                "release", "debug", "debug_and_release", "debug_and_release_target",
                 "build_all", "autogen_precompile_source", "ordered", "precompile_header",
                 "warn_on", "warn_off", "exceptions", "exceptions_off", "rtti", "rtti_off", "stl", "stl_off", "thread",
                 "c++11", "c++14",
@@ -400,7 +404,7 @@ describe("qmake built-in variables test", function() {
                 "windows", "console", "shared", "dll", "static", "staticlib", "plugin", "designer", "no_lflags_merge",
                 "flat", "embed_manifest_dll", "embed_manifest_exe",
                 "app_bundle", "lib_bundle",
-                "largefile", "separate_debug_info"], parserOutput.qmakeVars["CONFIG"]);
+                "largefile" /*, "separate_debug_info"*/ ], parserOutput.qmakeVars["CONFIG"]);
         });
         // *=
         // -=
