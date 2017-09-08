@@ -8,4 +8,15 @@ HEADERS = \
     website_backend/qtgumbodocument.h       \
     qml_frontend/forumreader.h
 
+HEADERS += win32/windows_specific.h
+HEADERS += xml/xml_doc.h \
+    xml_node.h
+HEADERS *= win32/windows_specific.h
+HEADERS *= xml/xml_doc.h \
+    xml_node.h
+
+HEADERS -= win32/windows_specific.h
+HEADERS -= xml/xml_doc.h \
+    xml_node.h
+
 TEMPLATE = app

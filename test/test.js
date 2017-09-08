@@ -685,10 +685,42 @@ describe("qmake built-in variables test", function() {
     });
 
     // HEADERS =/+=/*=/-= common.h lib1.h lib2.h backend.h
-    // =
-    // +=
-    // *=
-    // -=
+    describe("HEADERS", function() {
+        // =
+        it('valid HEADERS=... single-line assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/HEADERS/headers-assignment-singleline.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.sameMembers([
+                "common/filedownloader.h", "common/resultcode.h", "website_backend/gumboparserimpl.h",
+                "website_backend/qtgumbonode.h", "website_backend/websiteinterface.h",
+                "website_backend/html_tag.h", "website_backend/qtgumbodocument.h",
+                "qml_frontend/forumreader.h"],
+                parserOutput.qmakeVars["HEADERS"]);
+        });
+        it('valid HEADERS=... multi-line assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/HEADERS/headers-assignment-multiline.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.sameMembers([
+                "common/filedownloader.h", "common/resultcode.h", "website_backend/gumboparserimpl.h",
+                "website_backend/qtgumbonode.h", "website_backend/websiteinterface.h",
+                "website_backend/html_tag.h", "website_backend/qtgumbodocument.h",
+                "qml_frontend/forumreader.h"],
+                parserOutput.qmakeVars["HEADERS"]);
+        });
+        // +=
+        // *=
+        // -=
+        it('valid HEADERS=... multi-line multiple assignment statements', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/HEADERS/headers-appending-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.sameMembers([
+                "common/filedownloader.h", "common/resultcode.h", "website_backend/gumboparserimpl.h",
+                "website_backend/qtgumbonode.h", "website_backend/websiteinterface.h",
+                "website_backend/html_tag.h", "website_backend/qtgumbodocument.h",
+                "qml_frontend/forumreader.h"],
+                parserOutput.qmakeVars["HEADERS"]);
+        });
+    });
 
     // SOURCES =/+=/*=/-= common.cpp backend.cpp
     // =

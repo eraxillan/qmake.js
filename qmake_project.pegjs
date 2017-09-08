@@ -236,7 +236,8 @@ QtAssignmentStatement
 
 QtAppendingAssignmentStatement
     = lvalue:SystemQtVariable AppendingAssignmentOperator rvalue:RvalueExpression {
-    if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
+    if (!(rvalue instanceof Array))
+        error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = [];
 
@@ -249,7 +250,8 @@ QtAppendingAssignmentStatement
 
 QtAppendingUniqueAssignmentStatement
     = lvalue:SystemQtVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
-    if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
+    if (!(rvalue instanceof Array))
+        error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = rvalue;
 
@@ -265,7 +267,8 @@ QtAppendingUniqueAssignmentStatement
 
 QtRemovingAssignmentStatement
     = lvalue:SystemQtVariable RemovingAssignmentOperator rvalue:RvalueExpression {
-    if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
+    if (!(rvalue instanceof Array))
+        error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         return undefined;
 
@@ -287,19 +290,53 @@ QtRemovingAssignmentStatement
 HeadersBuiltinVariable
     = "HEADERS"
 HeadersAssignmentStatement
-    = lvalue:HeadersBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
-    return assignVariable(env.qmakeVars, lvalue, rvalue);
+    = lvalue:HeadersBuiltinVariable AssignmentOperator rvalue:RvalueExpression? {
+    if (!(rvalue instanceof Array))
+        error("qmake '=' operator rvalue must be a string array");
+    return assignVariable(env.qmakeVars, lvalue, rvalue ? rvalue : "");
 }
 
 // HEADERS += common.h lib1.h lib2.h backend.h
-// FIXME: implement
+HeadersAppendingAssignmentStatement
+    = lvalue:HeadersBuiltinVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
+    if (!(rvalue instanceof Array))
+        error("qmake '+=' operator rvalue must be a string array");
+    if (!env.qmakeVars[lvalue])
+        env.qmakeVars[lvalue] = [];
+
+    env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
+    return {name:lvalue, op:"+=", value:rvalue};
+}
 
 // HEADERS *= common.h lib1.h lib2.h backend.h
-// FIXME: implement
+HeadersAppendingUniqueAssignmentStatement
+    = lvalue:HeadersBuiltinVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
+    if (!(rvalue instanceof Array))
+        error("qmake '*=' operator rvalue must be a string array");
+    if (!env.qmakeVars[lvalue])
+        env.qmakeVars[lvalue] = rvalue;
+
+    for (var i = 0; i < rvalue.length; ++i) {
+        if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
+            env.qmakeVars[lvalue].push(rvalue[i]);
+    }
+    return {name:lvalue, op:"*=", value:rvalue};
+}
 
 // HEADERS -= common.h lib1.h lib2.h backend.h
-// FIXME: implement
+HeadersRemovingUniqueAssignmentStatement
+    = lvalue:HeadersBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
+    if (!(rvalue instanceof Array))
+        error("qmake '-=' operator rvalue must be a string array");
+    if (!env.qmakeVars[lvalue])
+        return undefined;
 
+    // Search for rvalue in the array and remove all occurences
+    for (var i = 0; i < rvalue.length; ++i) {
+        env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
+    }
+    return {name:lvalue, op:"-=", value:rvalue};
+}
 // SOURCES =/+=/*=/-= common.cpp backend.cpp
 // FIXME: implement
 
