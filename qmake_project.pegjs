@@ -223,7 +223,8 @@ ConfigRemovingAssignmentStatement
 SystemQtVariable
     = "QT"
 
-QtAssignmentStatement = lvalue:SystemQtVariable AssignmentOperator rvalue:RvalueExpression? {
+QtAssignmentStatement
+    = lvalue:SystemQtVariable AssignmentOperator rvalue:RvalueExpression? {
     if (!(rvalue instanceof Array))
         error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
 
@@ -233,7 +234,8 @@ QtAssignmentStatement = lvalue:SystemQtVariable AssignmentOperator rvalue:Rvalue
     return assignVariable(env.qmakeVars, lvalue, rvalue ? rvalue : "");
 }
 
-QtAppendingAssignmentStatement = lvalue:SystemQtVariable AppendingAssignmentOperator rvalue:RvalueExpression {
+QtAppendingAssignmentStatement
+    = lvalue:SystemQtVariable AppendingAssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = [];
@@ -245,7 +247,8 @@ QtAppendingAssignmentStatement = lvalue:SystemQtVariable AppendingAssignmentOper
     return {name:lvalue, op:"+=", value:rvalue};
 }
 
-QtAppendingUniqueAssignmentStatement = lvalue:SystemQtVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
+QtAppendingUniqueAssignmentStatement
+    = lvalue:SystemQtVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = rvalue;
@@ -260,7 +263,8 @@ QtAppendingUniqueAssignmentStatement = lvalue:SystemQtVariable AppendingUniqueAs
     return {name:lvalue, op:"*=", value:rvalue};
 }
 
-QtRemovingAssignmentStatement = lvalue:SystemQtVariable RemovingAssignmentOperator rvalue:RvalueExpression {
+QtRemovingAssignmentStatement
+    = lvalue:SystemQtVariable RemovingAssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         return undefined;
@@ -280,7 +284,8 @@ QtRemovingAssignmentStatement = lvalue:SystemQtVariable RemovingAssignmentOperat
 // HEADERS =/+=/*=/-= common.h lib1.h lib2.h backend.h
 
 // HEADERS = common.h lib1.h lib2.h backend.h
-HeadersBuiltinVariable = "HEADERS"
+HeadersBuiltinVariable
+    = "HEADERS"
 HeadersAssignmentStatement
     = lvalue:HeadersBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
@@ -299,7 +304,8 @@ HeadersAssignmentStatement
 // FIXME: implement
 
 // SOURCES = common.cpp backend.cpp
-SourcesBuiltinVariable = "SOURCES"
+SourcesBuiltinVariable
+    = "SOURCES"
 SourcesAssignmentStatement
     = lvalue:SourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
@@ -317,7 +323,8 @@ SourcesAssignmentStatement
 // LEXSOURCES =/+=/*=/-= lexer_1.l lexer_2.l lexer_3.l
 
 // LEXSOURCES = lexer_1.l lexer_2.l lexer_3.l
-LexSourcesBuiltinVariable = "LEXSOURCES"
+LexSourcesBuiltinVariable
+    = "LEXSOURCES"
 LexSourcesAssignmentStatement
     = lvalue:LexSourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
@@ -336,7 +343,8 @@ LexSourcesAssignmentStatement
 // FIXME: implement
 
 // YACCSOURCES = moc.y js.y
-YaccSourcesBuiltinVariable = "YACCSOURCES"
+YaccSourcesBuiltinVariable
+    = "YACCSOURCES"
 YaccSourcesAssignmentStatement
     = lvalue:YaccSourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
@@ -355,7 +363,8 @@ YaccSourcesAssignmentStatement
 // FIXME: implement
 
 // FORMS = mydialog.ui mywidget.ui myconfig.ui
-FormsBuiltinVariable = "FORMS"
+FormsBuiltinVariable
+    = "FORMS"
 FormsAssignmentStatement
     = lvalue:FormsBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
@@ -373,7 +382,8 @@ FormsAssignmentStatement
 // FIXME: implement
 
 // RESOURCES = icons.qrc strings.qrc
-ResourcesBuiltinVariable = "RESOURCES"
+ResourcesBuiltinVariable
+    = "RESOURCES"
 ResourcesAssignmentStatement
     = lvalue:ResourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
@@ -392,7 +402,8 @@ ResourcesAssignmentStatement
 // FIXME: implement
 
 // TRANSLATIONS = en.ts ru.ts es.ts
-TranslationsBuiltinVariable = "TRANSLATIONS"
+TranslationsBuiltinVariable
+    = "TRANSLATIONS"
 TranslationsAssignmentStatement
     = lvalue:TranslationsBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
@@ -441,7 +452,8 @@ MocDirAssignmentStatement
 
 // -------------------------------------------------------------------------------------------------
 
-UserVariableAssignmentStatement = lvalue:UserVariableIdentifier AssignmentOperator rvalue:RvalueExpression {
+UserVariableAssignmentStatement
+    = lvalue:UserVariableIdentifier AssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
     if (!rvalue)
         rvalue = [];
@@ -449,7 +461,8 @@ UserVariableAssignmentStatement = lvalue:UserVariableIdentifier AssignmentOperat
     return assignVariable(env.userVars, lvalue, rvalue);
 }
 
-UserVariableAppendingAssignmentStatement = lvalue:UserVariableIdentifier AppendingAssignmentOperator rvalue:RvalueExpression {
+UserVariableAppendingAssignmentStatement
+    = lvalue:UserVariableIdentifier AppendingAssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.userVars[lvalue])
         env.userVars[lvalue] = [];
@@ -458,7 +471,8 @@ UserVariableAppendingAssignmentStatement = lvalue:UserVariableIdentifier Appendi
     return {name:lvalue, op:"+=", value:rvalue};
 }
 
-UserVariableAppendingUniqueAssignmentStatement = lvalue:UserVariableIdentifier AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
+UserVariableAppendingUniqueAssignmentStatement
+    = lvalue:UserVariableIdentifier AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.userVars[lvalue])
         env.userVars[lvalue] = rvalue;
@@ -469,7 +483,8 @@ UserVariableAppendingUniqueAssignmentStatement = lvalue:UserVariableIdentifier A
     return {name:lvalue, op:"*=", value:rvalue};
 }
 
-UserVariableRemovingAssignmentStatement = lvalue:UserVariableIdentifier RemovingAssignmentOperator rvalue:RvalueExpression {
+UserVariableRemovingAssignmentStatement
+    = lvalue:UserVariableIdentifier RemovingAssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.userVars[lvalue])
         return undefined;
@@ -588,7 +603,8 @@ UserVariableIdentifier
 }
 
 // Functions: qmake replace and test functions and user-defined ones
-FunctionIdentifier = FunctionIdentifierT
+FunctionIdentifier
+    = FunctionIdentifierT
 FunctionIdentifierT
     = SystemReplaceFunctionIdentifier / SystemTestFunctionIdentifier
     / UserReplaceFunctionIdentifier / UserTestFunctionIdentifier
