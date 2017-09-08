@@ -386,8 +386,9 @@ describe("qmake built-in variables test", function() {
             assert.equal("separate_debug_info", parserOutput.qmakeVars["CONFIG"]);
         });
 
-        // FIXME: add others
         // +=
+        // *=
+        // -=
         it('valid CONFIG+=release debug ... separate_debug_info assignment statement', function() {
             var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/CONFIG/config-appending-assignment.pro");
             assert.equal(true,  parserOutput.result);
@@ -404,10 +405,10 @@ describe("qmake built-in variables test", function() {
                 "windows", "console", "shared", "dll", "static", "staticlib", "plugin", "designer", "no_lflags_merge",
                 "flat", "embed_manifest_dll", "embed_manifest_exe",
                 "app_bundle", "lib_bundle",
-                "largefile" /*, "separate_debug_info"*/ ], parserOutput.qmakeVars["CONFIG"]);
+                "largefile" /*, "separate_debug_info"*/ ],
+                parserOutput.qmakeVars["CONFIG"]);
         });
-        // *=
-        // -=
+
     });
     
     // QT =/+=/*=/-=
@@ -422,9 +423,266 @@ describe("qmake built-in variables test", function() {
     //    sensors serialbus serialport svg webchannel webengine websockets webview
     //    winextras x11extras xml xmlpatterns charts datavisualization
     // =
-    // +=
-    // *=
-    // -=
+    describe("QT", function() {
+        // =
+        it('valid QT=core assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-core-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("core", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=gui assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-gui-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("gui", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=widgets assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-widgets-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("widgets", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=network assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-network-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("network", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=multimedia assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-multimedia-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("multimedia", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=sql assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-sql-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("sql", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=testlib assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-testlib-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("testlib", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=multimediawidgets assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-multimediawidgets-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("multimediawidgets", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=qml assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-qml-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("qml", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=quick assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-quick-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("quick", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=axcontainer assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-axcontainer-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("axcontainer", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=axserver assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-axserver-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("axserver", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=3dcore assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-3dcore-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("3dcore", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=3drender assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-3drender-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("3drender", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=3dinput assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-3dinput-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("3dinput", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=3dlogic assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-3dlogic-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("3dlogic", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=3dextras assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-3dextras-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("3dextras", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=enginio assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-enginio-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("enginio", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=androidextras assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-androidextras-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("androidextras", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=bluetooth assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-bluetooth-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("bluetooth", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=concurrent assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-concurrent-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("concurrent", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=dbus assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-dbus-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("dbus", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=location assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-location-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("location", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=macextras assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-macextras-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("macextras", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=nfc assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-nfc-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("nfc", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=opengl assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-opengl-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("opengl", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=positioning assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-positioning-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("positioning", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=printsupport assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-printsupport-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("printsupport", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=purchasing assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-purchasing-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("purchasing", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=quickcontrols2 assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-quickcontrols2-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("quickcontrols2", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=quickwidgets assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-quickwidgets-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("quickwidgets", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=script assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-script-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("script", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=scripttools assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-scripttools-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("scripttools", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=scxml assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-scxml-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("scxml", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=sensors assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-sensors-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("sensors", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=serialbus assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-serialbus-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("serialbus", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=serialport assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-serialport-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("serialport", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=svg assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-svg-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("svg", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=webchannel assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-webchannel-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("webchannel", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=webengine assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-webengine-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("webengine", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=websockets assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-websockets-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("websockets", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=webview assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-webview-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("webview", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=winextras assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-winextras-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("winextras", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=x11extras assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-x11extras-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("x11extras", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=xml assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-xml-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("xml", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=xmlpatterns assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-xmlpatterns-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("xmlpatterns", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=charts assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-charts-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("charts", parserOutput.qmakeVars["QT"]);
+        });
+        it('valid QT=datavisualization assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-datavisualization-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.equal("datavisualization", parserOutput.qmakeVars["QT"]);
+        });
+        // +=
+        // *=
+        // -=
+        it('valid QT+=core gui ... datavisualization assignment statement', function() {
+            var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/QT/qt-appending-assignment.pro");
+            assert.equal(true,  parserOutput.result);
+            assert.sameMembers([
+                "core", "gui", "widgets", "network", "multimedia", "sql", "testlib", "multimediawidgets", "qml", "quick",
+                "axcontainer", "axserver",
+                "3dcore", "3drender", "3dinput", "3dlogic", "3dextras",
+                "enginio", "androidextras", "bluetooth", "concurrent", "dbus", "location",
+                "macextras", "nfc", "opengl", "positioning", /*"printsupport"*/ "purchasing",
+                "quickcontrols2", "quickwidgets", "script", "scripttools", "scxml",
+                "sensors", "serialbus", "serialport", "svg", "webchannel", "webengine", "websockets", "webview",
+                "winextras", "x11extras", "xml", "xmlpatterns", "charts", "datavisualization"],
+                parserOutput.qmakeVars["QT"]);
+        });
+    });
 
     // HEADERS =/+=/*=/-= common.h lib1.h lib2.h backend.h
     // =

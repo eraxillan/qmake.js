@@ -283,7 +283,7 @@ function init() {
     return qmakeVars;
 }
 
-function initConfigValues() {
+function initConfigVariableValues() {
     var validValues = [
         "release", "debug", "debug_and_release", "debug_and_release_target",
         "build_all", "autogen_precompile_source", "ordered", "precompile_header",
@@ -299,5 +299,21 @@ function initConfigValues() {
     return validValues;
 }
 
+function initQtVariableValues() {
+    var validValues = [
+        "core", "gui", "widgets", "network", "multimedia", "sql", "testlib", "multimediawidgets", "qml", "quick",
+        //
+        "axcontainer", "axserver",
+        "3dcore", "3drender", "3dinput", "3dlogic", "3dextras",
+        "enginio", "androidextras", "bluetooth", "concurrent", "dbus", "location",
+        "macextras", "nfc", "opengl", "positioning", "printsupport", "purchasing",
+        "quickcontrols2", "quickwidgets", "script", "scripttools", "scxml",
+        "sensors", "serialbus", "serialport", "svg", "webchannel", "webengine", "websockets", "webview",
+        "winextras", "x11extras", "xml", "xmlpatterns", "charts", "datavisualization"
+    ];
+    return validValues;
+}
+
 exports.qmakeVars = init;
-exports.configValidValues = initConfigValues;
+exports.configValidValues = initConfigVariableValues;
+exports.qtValidValues = initQtVariableValues;

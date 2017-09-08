@@ -20,6 +20,7 @@ function initBuiltinVars() {
     const initializer = require("./qmakeVarsInit");
     env.qmakeVars = initializer.qmakeVars();
     env.configValidValues = initializer.configValidValues();
+    env.qtValidValues = initializer.qtValidValues();
 }
 
 function initBuiltinReplaceFunctions() {
@@ -151,7 +152,7 @@ SystemConfigVariable
     = "CONFIG"
 
 ConfigAssignmentStatement
-    = lvalue:SystemConfigVariable AssignmentOperator rvalue:RvalueExpression? /*Whitespace* LineBreak* */{
+    = lvalue:SystemConfigVariable AssignmentOperator rvalue:RvalueExpression? {
     if (!(rvalue instanceof Array))
         error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
 
@@ -179,7 +180,7 @@ ConfigAppendingUniqueAssignmentStatement
         error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
 
     if (!arrayContainsOnly(rvalue, env.configValidValues))
-        error("ConfigAppendingAssignmentStatement: invalid CONFIG value");
+        error("ConfigAppendingUniqueAssignmentStatement: invalid CONFIG value");
 
     for (var i = 0; i < rvalue.length; ++i) {
         if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
@@ -190,12 +191,13 @@ ConfigAppendingUniqueAssignmentStatement
 
 ConfigRemovingAssignmentStatement
     = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
+    if (!(rvalue instanceof Array))
+        error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         return undefined;
 
     if (!arrayContainsOnly(rvalue, env.configValidValues))
-        error("ConfigAppendingAssignmentStatement: invalid CONFIG value");
+        error("ConfigRemovingAssignmentStatement: invalid CONFIG value");
 
     // Search for rvalue in the array and remove all occurences
     for (var i = 0; i < rvalue.length; ++i) {
@@ -220,51 +222,36 @@ ConfigRemovingAssignmentStatement
 
 SystemQtVariable
     = "QT"
-SystemQtVariableValueKeyword
-    = "core" / "gui" / "widgets" / "network" / "sql" / "testlib"
-    / "quickcontrols2" / "quickwidgets" / "qml" / "quick"
-    / "multimediawidgets" / "multimedia"
-    / "axcontainer" / "axserver"
-    / "3dcore" / "3drender" / "3dinput" / "3dlogic" / "3dextras"
-    / "enginio" / "androidextras" / "bluetooth" / "concurrent" / "dbus" / "location"
-    / "macextras" / "nfc" / "opengl" / "positioning" / "printsupport" / "purchasing"
-    / "scripttools" / "script" / "scxml"
-    / "sensors" / "serialport" / "serialbus" / "svg"
-    / "webchannel" / "webengine" / "websockets" / "webview"
-    / "winextras" / "x11extras" / "xmlpatterns" / "xml"
-    / "charts" / "datavisualization"
-SystemQtVariableValueKeywordWithWS
-    = v:SystemQtVariableValueKeyword Whitespace+ {
-    return v;
-}
-SystemQtVariableSingleValueOrList
-    = SystemQtVariableValueKeywordWithWS / SystemQtVariableValueKeyword
 
-SystemQtVariableValueList
-    = v:SystemQtVariableSingleValueOrList+ LineBreak+ {
-    return v;
+QtAssignmentStatement = lvalue:SystemQtVariable AssignmentOperator rvalue:RvalueExpression? {
+    if (!(rvalue instanceof Array))
+        error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
+
+    if (!arrayContainsOnly(rvalue, env.qtValidValues))
+        error("QtAssignmentStatement: invalid QT value");
+    
+    return assignVariable(env.qmakeVars, lvalue, rvalue ? rvalue : "");
 }
 
-QtAssignmentStatement = lvalue:SystemQtVariable AssignmentOperator rvalue:SystemQtVariableValueList? Whitespace* LineBreak* {
-    if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
-
-    env.qmakeVars[lvalue] = rvalue ? rvalue : "";
-    return {name:lvalue, op:"=", value:rvalue};
-}
-
-QtAppendingAssignmentStatement = lvalue:SystemQtVariable AppendingAssignmentOperator rvalue:SystemQtVariableValueList {
+QtAppendingAssignmentStatement = lvalue:SystemQtVariable AppendingAssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = [];
-    
+
+    if (!arrayContainsOnly(rvalue, env.qtValidValues))
+        error("QtAppendingAssignmentStatement: invalid QT value");
+
     env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
     return {name:lvalue, op:"+=", value:rvalue};
 }
 
-QtAppendingUniqueAssignmentStatement = lvalue:SystemQtVariable AppendingUniqueAssignmentOperator rvalue:SystemQtVariableValueList {
+QtAppendingUniqueAssignmentStatement = lvalue:SystemQtVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         env.qmakeVars[lvalue] = rvalue;
+
+    if (!arrayContainsOnly(rvalue, env.qtValidValues))
+        error("QtAppendingUniqueAssignmentStatement: invalid QT value");
 
     for (var i = 0; i < rvalue.length; ++i) {
         if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
@@ -273,11 +260,14 @@ QtAppendingUniqueAssignmentStatement = lvalue:SystemQtVariable AppendingUniqueAs
     return {name:lvalue, op:"*=", value:rvalue};
 }
 
-QtRemovingAssignmentStatement = lvalue:SystemQtVariable RemovingAssignmentOperator rvalue:SystemQtVariableValueList {
+QtRemovingAssignmentStatement = lvalue:SystemQtVariable RemovingAssignmentOperator rvalue:RvalueExpression {
     if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
     if (!env.qmakeVars[lvalue])
         return undefined;
-    
+
+    if (!arrayContainsOnly(rvalue, env.qtValidValues))
+        error("QtRemovingAssignmentStatement: invalid QT value");
+
     // Search for rvalue in the array and remove all occurences
     for (var i = 0; i < rvalue.length; ++i) {
         env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
