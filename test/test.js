@@ -723,10 +723,42 @@ describe("qmake built-in variables test", function() {
     });
 
     // SOURCES =/+=/*=/-= common.cpp backend.cpp
+    describe("SOURCES", function() {
     // =
+    it('valid SOURCES=... single-line assignment statement', function() {
+        var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/SOURCES/sources-assignment-singleline.pro");
+        assert.equal(true,  parserOutput.result);
+        assert.sameMembers([
+            "common/filedownloader.cpp", "common/resultcode.cpp", "website_backend/gumboparserimpl.cpp",
+            "website_backend/qtgumbonode.c", "website_backend/websiteinterface.cxx",
+            "website_backend/html_tag.cpp", "website_backend/qtgumbodocument.c",
+            "qml_frontend/forumreader.cpp"],
+            parserOutput.qmakeVars["SOURCES"]);
+    });
+    it('valid SOURCES=... multi-line assignment statement', function() {
+        var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/SOURCES/sources-assignment-multiline.pro");
+        assert.equal(true,  parserOutput.result);
+        assert.sameMembers([
+            "common/filedownloader.cpp", "common/resultcode.c", "website_backend/gumboparserimpl.cpp",
+            "website_backend/qtgumbonode.cxx", "website_backend/websiteinterface.cpp",
+            "website_backend/html_tag.cpp", "website_backend/qtgumbodocument.cpp",
+            "qml_frontend/forumreader.cpp"],
+            parserOutput.qmakeVars["SOURCES"]);
+    });
     // +=
     // *=
     // -=
+    it('valid SOURCES=... multi-line multiple assignment statements', function() {
+        var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/SOURCES/sources-appending-assignment.pro");
+        assert.equal(true,  parserOutput.result);
+        assert.sameMembers([
+            "common/filedownloader.cpp", "common/resultcode.cpp", "website_backend/gumboparserimpl.cpp",
+            "website_backend/qtgumbonode.cpp", "website_backend/websiteinterface.cpp",
+            "website_backend/html_tag.cpp", "website_backend/qtgumbodocument.cpp",
+            "qml_frontend/forumreader.cpp"],
+            parserOutput.qmakeVars["SOURCES"]);
+    });
+    });
 
     // LEXSOURCES =/+=/*=/-= lexer_1.l lexer_2.l lexer_3.l
     // =
