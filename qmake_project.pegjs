@@ -132,8 +132,17 @@ GenericAssignmentStatement
     / QtAppendingUniqueAssignmentStatement
     / QtRemovingAssignmentStatement
     // Input source code
-    / HeadersAssignmentStatement       // HEADERS
-    / SourcesAssignmentStatement       // SOURCES
+    // HEADERS
+    / HeadersAssignmentStatement
+    / HeadersAppendingAssignmentStatement
+    / HeadersAppendingUniqueAssignmentStatement
+    / HeadersRemovingAssignmentStatement
+    // SOURCES
+    / SourcesAssignmentStatement
+    / SourcesAppendingAssignmentStatement
+    / SourcesAppendingUniqueAssignmentStatement
+    / SourcesRemovingAssignmentStatement
+
     / LexSourcesAssignmentStatement    // LEXSOURCES
     / YaccSourcesAssignmentStatement   // YACCSOURCES
     / FormsAssignmentStatement         // FORMS
@@ -299,7 +308,7 @@ HeadersAppendingUniqueAssignmentStatement
 }
 
 // HEADERS -= common.h lib1.h lib2.h backend.h
-HeadersRemovingUniqueAssignmentStatement
+HeadersRemovingAssignmentStatement
     = lvalue:HeadersBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
     return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
@@ -315,13 +324,22 @@ SourcesAssignmentStatement
 }
 
 // SOURCES += common.cpp backend.cpp
-// FIXME: implement
+SourcesAppendingAssignmentStatement
+    = lvalue:SourcesBuiltinVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
+    return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // SOURCES *= common.cpp backend.cpp
-// FIXME: implement
+SourcesAppendingUniqueAssignmentStatement
+    = lvalue:SourcesBuiltinVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
+    return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // SOURCES -= common.cpp backend.cpp
-// FIXME: implement
+SourcesRemovingAssignmentStatement
+    = lvalue:SourcesBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
+    return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // LEXSOURCES =/+=/*=/-= lexer_1.l lexer_2.l lexer_3.l
 

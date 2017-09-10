@@ -894,33 +894,51 @@ function peg$parse(input, options) {
                     if (s0 === peg$FAILED) {
                       s0 = peg$parseHeadersAssignmentStatement();
                       if (s0 === peg$FAILED) {
-                        s0 = peg$parseSourcesAssignmentStatement();
+                        s0 = peg$parseHeadersAppendingAssignmentStatement();
                         if (s0 === peg$FAILED) {
-                          s0 = peg$parseLexSourcesAssignmentStatement();
+                          s0 = peg$parseHeadersAppendingUniqueAssignmentStatement();
                           if (s0 === peg$FAILED) {
-                            s0 = peg$parseYaccSourcesAssignmentStatement();
+                            s0 = peg$parseHeadersRemovingAssignmentStatement();
                             if (s0 === peg$FAILED) {
-                              s0 = peg$parseFormsAssignmentStatement();
+                              s0 = peg$parseSourcesAssignmentStatement();
                               if (s0 === peg$FAILED) {
-                                s0 = peg$parseResourcesAssignmentStatement();
+                                s0 = peg$parseSourcesAppendingAssignmentStatement();
                                 if (s0 === peg$FAILED) {
-                                  s0 = peg$parseTranslationsAssignmentStatement();
+                                  s0 = peg$parseSourcesAppendingUniqueAssignmentStatement();
                                   if (s0 === peg$FAILED) {
-                                    s0 = peg$parseDestdirAssignmentStatement();
+                                    s0 = peg$parseSourcesRemovingAssignmentStatement();
                                     if (s0 === peg$FAILED) {
-                                      s0 = peg$parseUiDirAssignmentStatement();
+                                      s0 = peg$parseLexSourcesAssignmentStatement();
                                       if (s0 === peg$FAILED) {
-                                        s0 = peg$parseObjectsDirAssignmentStatement();
+                                        s0 = peg$parseYaccSourcesAssignmentStatement();
                                         if (s0 === peg$FAILED) {
-                                          s0 = peg$parseMocDirAssignmentStatement();
+                                          s0 = peg$parseFormsAssignmentStatement();
                                           if (s0 === peg$FAILED) {
-                                            s0 = peg$parseUserVariableAssignmentStatement();
+                                            s0 = peg$parseResourcesAssignmentStatement();
                                             if (s0 === peg$FAILED) {
-                                              s0 = peg$parseUserVariableAppendingAssignmentStatement();
+                                              s0 = peg$parseTranslationsAssignmentStatement();
                                               if (s0 === peg$FAILED) {
-                                                s0 = peg$parseUserVariableAppendingUniqueAssignmentStatement();
+                                                s0 = peg$parseDestdirAssignmentStatement();
                                                 if (s0 === peg$FAILED) {
-                                                  s0 = peg$parseUserVariableRemovingAssignmentStatement();
+                                                  s0 = peg$parseUiDirAssignmentStatement();
+                                                  if (s0 === peg$FAILED) {
+                                                    s0 = peg$parseObjectsDirAssignmentStatement();
+                                                    if (s0 === peg$FAILED) {
+                                                      s0 = peg$parseMocDirAssignmentStatement();
+                                                      if (s0 === peg$FAILED) {
+                                                        s0 = peg$parseUserVariableAssignmentStatement();
+                                                        if (s0 === peg$FAILED) {
+                                                          s0 = peg$parseUserVariableAppendingAssignmentStatement();
+                                                          if (s0 === peg$FAILED) {
+                                                            s0 = peg$parseUserVariableAppendingUniqueAssignmentStatement();
+                                                            if (s0 === peg$FAILED) {
+                                                              s0 = peg$parseUserVariableRemovingAssignmentStatement();
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
                                                 }
                                               }
                                             }
@@ -2108,13 +2126,13 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parseHeadersRemovingUniqueAssignmentStatement() {
+  function peg$parseHeadersRemovingAssignmentStatement() {
     var s0, s1, s2, s3,
         startPos = peg$currPos;
 
     peg$tracer.trace({
       type:     "rule.enter",
-      rule:     "HeadersRemovingUniqueAssignmentStatement",
+      rule:     "HeadersRemovingAssignmentStatement",
       location: peg$computeLocation(startPos, startPos)
     });
 
@@ -2147,14 +2165,14 @@ function peg$parse(input, options) {
     if (s0 !== peg$FAILED) {
       peg$tracer.trace({
         type:   "rule.match",
-        rule:   "HeadersRemovingUniqueAssignmentStatement",
+        rule:   "HeadersRemovingAssignmentStatement",
         result: s0,
         location: peg$computeLocation(startPos, peg$currPos)
       });
     } else {
       peg$tracer.trace({
         type: "rule.fail",
-        rule: "HeadersRemovingUniqueAssignmentStatement",
+        rule: "HeadersRemovingAssignmentStatement",
         location: peg$computeLocation(startPos, startPos)
       });
     }
@@ -2245,6 +2263,168 @@ function peg$parse(input, options) {
       peg$tracer.trace({
         type: "rule.fail",
         rule: "SourcesAssignmentStatement",
+        location: peg$computeLocation(startPos, startPos)
+      });
+    }
+
+    return s0;
+  }
+
+  function peg$parseSourcesAppendingAssignmentStatement() {
+    var s0, s1, s2, s3,
+        startPos = peg$currPos;
+
+    peg$tracer.trace({
+      type:     "rule.enter",
+      rule:     "SourcesAppendingAssignmentStatement",
+      location: peg$computeLocation(startPos, startPos)
+    });
+
+    s0 = peg$currPos;
+    s1 = peg$parseSourcesBuiltinVariable();
+    if (s1 !== peg$FAILED) {
+      s2 = peg$parseAppendingAssignmentOperator();
+      if (s2 !== peg$FAILED) {
+        s3 = peg$parseRvalueExpression();
+        if (s3 === peg$FAILED) {
+          s3 = null;
+        }
+        if (s3 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c41(s1, s3);
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+    } else {
+      peg$currPos = s0;
+      s0 = peg$FAILED;
+    }
+
+    if (s0 !== peg$FAILED) {
+      peg$tracer.trace({
+        type:   "rule.match",
+        rule:   "SourcesAppendingAssignmentStatement",
+        result: s0,
+        location: peg$computeLocation(startPos, peg$currPos)
+      });
+    } else {
+      peg$tracer.trace({
+        type: "rule.fail",
+        rule: "SourcesAppendingAssignmentStatement",
+        location: peg$computeLocation(startPos, startPos)
+      });
+    }
+
+    return s0;
+  }
+
+  function peg$parseSourcesAppendingUniqueAssignmentStatement() {
+    var s0, s1, s2, s3,
+        startPos = peg$currPos;
+
+    peg$tracer.trace({
+      type:     "rule.enter",
+      rule:     "SourcesAppendingUniqueAssignmentStatement",
+      location: peg$computeLocation(startPos, startPos)
+    });
+
+    s0 = peg$currPos;
+    s1 = peg$parseSourcesBuiltinVariable();
+    if (s1 !== peg$FAILED) {
+      s2 = peg$parseAppendingUniqueAssignmentOperator();
+      if (s2 !== peg$FAILED) {
+        s3 = peg$parseRvalueExpression();
+        if (s3 === peg$FAILED) {
+          s3 = null;
+        }
+        if (s3 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c42(s1, s3);
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+    } else {
+      peg$currPos = s0;
+      s0 = peg$FAILED;
+    }
+
+    if (s0 !== peg$FAILED) {
+      peg$tracer.trace({
+        type:   "rule.match",
+        rule:   "SourcesAppendingUniqueAssignmentStatement",
+        result: s0,
+        location: peg$computeLocation(startPos, peg$currPos)
+      });
+    } else {
+      peg$tracer.trace({
+        type: "rule.fail",
+        rule: "SourcesAppendingUniqueAssignmentStatement",
+        location: peg$computeLocation(startPos, startPos)
+      });
+    }
+
+    return s0;
+  }
+
+  function peg$parseSourcesRemovingAssignmentStatement() {
+    var s0, s1, s2, s3,
+        startPos = peg$currPos;
+
+    peg$tracer.trace({
+      type:     "rule.enter",
+      rule:     "SourcesRemovingAssignmentStatement",
+      location: peg$computeLocation(startPos, startPos)
+    });
+
+    s0 = peg$currPos;
+    s1 = peg$parseSourcesBuiltinVariable();
+    if (s1 !== peg$FAILED) {
+      s2 = peg$parseRemovingAssignmentOperator();
+      if (s2 !== peg$FAILED) {
+        s3 = peg$parseRvalueExpression();
+        if (s3 === peg$FAILED) {
+          s3 = null;
+        }
+        if (s3 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c43(s1, s3);
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+    } else {
+      peg$currPos = s0;
+      s0 = peg$FAILED;
+    }
+
+    if (s0 !== peg$FAILED) {
+      peg$tracer.trace({
+        type:   "rule.match",
+        rule:   "SourcesRemovingAssignmentStatement",
+        result: s0,
+        location: peg$computeLocation(startPos, peg$currPos)
+      });
+    } else {
+      peg$tracer.trace({
+        type: "rule.fail",
+        rule: "SourcesRemovingAssignmentStatement",
         location: peg$computeLocation(startPos, startPos)
       });
     }
