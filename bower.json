@@ -1,8 +1,8 @@
 {
-  "name": "qmake-project-parser",
+  "name": "qmake.js",
   "version": "0.0.1",
-  "description": "A JavaScript parser for Qt qmake project files (*.pro)",
-  "license": "LGPL-3.0",
+  "description": "Node.js port of Qt's qmake build system",
+  "license": "MIT",
   "private": true,
   "main": [
     "./frontend.js"
