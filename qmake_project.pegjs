@@ -46,6 +46,28 @@ function appendAssignVariable(dict, name, value) {
     return {name:name, op:"+=", value:value};
 }
 
+function appendUniqueAssignVariable(dict, name, value) {
+    if (!dict[name])
+        dict[name] = [];
+
+    for (var i = 0; i < value.length; ++i) {
+        if (dict[name].indexOf(value[i]) < 0)
+            dict[name].push(value[i]);
+    }
+    return {name:name, op:"*=", value:value};
+}
+
+function removeAssignVariable(dict, name, value) {
+    if (!dict[name])
+        return undefined;
+
+    // Search for value in the array and remove all occurences
+    for (var i = 0; i < value.length; ++i) {
+        dict[name] = dict[name].filter(function(item) { return (item !== value[i]); });
+    }
+    return {name:name, op:"-=", value:value};
+}
+
 function arrayContainsOnly(testArray, referenceArray) {
     // TODO: handle corner cases
     
@@ -189,11 +211,7 @@ ConfigAppendingUniqueAssignmentStatement
     if (!arrayContainsOnly(rvalue, env.configValidValues))
         error("ConfigAppendingUniqueAssignmentStatement: invalid CONFIG value");
 
-    for (var i = 0; i < rvalue.length; ++i) {
-        if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
-            env.qmakeVars[lvalue].push(rvalue[i]);
-    }
-    return {name:lvalue, op:"*=", value:rvalue};
+    return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 ConfigRemovingAssignmentStatement
@@ -206,11 +224,7 @@ ConfigRemovingAssignmentStatement
     if (!arrayContainsOnly(rvalue, env.configValidValues))
         error("ConfigRemovingAssignmentStatement: invalid CONFIG value");
 
-    // Search for rvalue in the array and remove all occurences
-    for (var i = 0; i < rvalue.length; ++i) {
-        env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
-    }
-    return {name:lvalue, op:"-=", value:rvalue};
+    return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -264,11 +278,7 @@ QtAppendingUniqueAssignmentStatement
     if (!arrayContainsOnly(rvalue, env.qtValidValues))
         error("QtAppendingUniqueAssignmentStatement: invalid QT value");
 
-    for (var i = 0; i < rvalue.length; ++i) {
-        if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
-            env.qmakeVars[lvalue].push(rvalue[i]);
-    }
-    return {name:lvalue, op:"*=", value:rvalue};
+    return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 QtRemovingAssignmentStatement
@@ -281,11 +291,7 @@ QtRemovingAssignmentStatement
     if (!arrayContainsOnly(rvalue, env.qtValidValues))
         error("QtRemovingAssignmentStatement: invalid QT value");
 
-    // Search for rvalue in the array and remove all occurences
-    for (var i = 0; i < rvalue.length; ++i) {
-        env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
-    }
-    return {name:lvalue, op:"-=", value:rvalue};
+    return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -316,14 +322,8 @@ HeadersAppendingUniqueAssignmentStatement
     = lvalue:HeadersBuiltinVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
     if (!(rvalue instanceof Array))
         error("qmake '*=' operator rvalue must be a string array");
-    if (!env.qmakeVars[lvalue])
-        env.qmakeVars[lvalue] = rvalue;
 
-    for (var i = 0; i < rvalue.length; ++i) {
-        if (env.qmakeVars[lvalue].indexOf(rvalue[i]) < 0)
-            env.qmakeVars[lvalue].push(rvalue[i]);
-    }
-    return {name:lvalue, op:"*=", value:rvalue};
+    return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // HEADERS -= common.h lib1.h lib2.h backend.h
@@ -331,14 +331,8 @@ HeadersRemovingUniqueAssignmentStatement
     = lvalue:HeadersBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
     if (!(rvalue instanceof Array))
         error("qmake '-=' operator rvalue must be a string array");
-    if (!env.qmakeVars[lvalue])
-        return undefined;
 
-    // Search for rvalue in the array and remove all occurences
-    for (var i = 0; i < rvalue.length; ++i) {
-        env.qmakeVars[lvalue] = env.qmakeVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
-    }
-    return {name:lvalue, op:"-=", value:rvalue};
+    return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // SOURCES =/+=/*=/-= common.cpp backend.cpp
