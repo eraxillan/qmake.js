@@ -34,11 +34,17 @@ function initBuiltinTestFunctions() {
 }
 
 function assignVariable(dict, name, value) {
+    if (!(value instanceof Array))
+        error("qmake '=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
+
     dict[name] = value;
     return {name:name, op:"=", value:value};
 }
 
 function appendAssignVariable(dict, name, value) {
+    if (!(value instanceof Array))
+        error("qmake '+=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
+
     if (!dict[name])
         dict[name] = [];
 
@@ -47,6 +53,9 @@ function appendAssignVariable(dict, name, value) {
 }
 
 function appendUniqueAssignVariable(dict, name, value) {
+    if (!(value instanceof Array))
+        error("qmake '*=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
+
     if (!dict[name])
         dict[name] = [];
 
@@ -58,6 +67,9 @@ function appendUniqueAssignVariable(dict, name, value) {
 }
 
 function removeAssignVariable(dict, name, value) {
+    if (!(value instanceof Array))
+        error("qmake '-=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
+
     if (!dict[name])
         return undefined;
 
@@ -183,9 +195,6 @@ SystemConfigVariable
 
 ConfigAssignmentStatement
     = lvalue:SystemConfigVariable AssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array))
-        error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
-
     if (!arrayContainsOnly(rvalue, env.configValidValues))
         error("ConfigAssignmentStatement: invalid CONFIG value");
 
@@ -194,9 +203,6 @@ ConfigAssignmentStatement
 
 ConfigAppendingAssignmentStatement
     = lvalue:SystemConfigVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array))
-        error("qmake '+=' operator rvalue must be a JS Array, but actual type is '" + typeof(rvalue) + "' with value:\n" + rvalue);
-
     if (!arrayContainsOnly(rvalue, env.configValidValues))
         error("ConfigAppendingAssignmentStatement: invalid CONFIG value");
 
@@ -205,9 +211,6 @@ ConfigAppendingAssignmentStatement
 
 ConfigAppendingUniqueAssignmentStatement
     = lvalue:SystemConfigVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array))
-        error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
-
     if (!arrayContainsOnly(rvalue, env.configValidValues))
         error("ConfigAppendingUniqueAssignmentStatement: invalid CONFIG value");
 
@@ -216,11 +219,6 @@ ConfigAppendingUniqueAssignmentStatement
 
 ConfigRemovingAssignmentStatement
     = lvalue:SystemConfigVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array))
-        error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
-    if (!env.qmakeVars[lvalue])
-        return undefined;
-
     if (!arrayContainsOnly(rvalue, env.configValidValues))
         error("ConfigRemovingAssignmentStatement: invalid CONFIG value");
 
@@ -246,9 +244,6 @@ SystemQtVariable
 
 QtAssignmentStatement
     = lvalue:SystemQtVariable AssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array))
-        error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
-
     if (!arrayContainsOnly(rvalue, env.qtValidValues))
         error("QtAssignmentStatement: invalid QT value");
     
@@ -257,11 +252,6 @@ QtAssignmentStatement
 
 QtAppendingAssignmentStatement
     = lvalue:SystemQtVariable AppendingAssignmentOperator rvalue:RvalueExpression {
-    if (!(rvalue instanceof Array))
-        error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
-    if (!env.qmakeVars[lvalue])
-        env.qmakeVars[lvalue] = [];
-
     if (!arrayContainsOnly(rvalue, env.qtValidValues))
         error("QtAppendingAssignmentStatement: invalid QT value");
 
@@ -270,11 +260,6 @@ QtAppendingAssignmentStatement
 
 QtAppendingUniqueAssignmentStatement
     = lvalue:SystemQtVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
-    if (!(rvalue instanceof Array))
-        error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
-    if (!env.qmakeVars[lvalue])
-        env.qmakeVars[lvalue] = rvalue;
-
     if (!arrayContainsOnly(rvalue, env.qtValidValues))
         error("QtAppendingUniqueAssignmentStatement: invalid QT value");
 
@@ -283,11 +268,6 @@ QtAppendingUniqueAssignmentStatement
 
 QtRemovingAssignmentStatement
     = lvalue:SystemQtVariable RemovingAssignmentOperator rvalue:RvalueExpression {
-    if (!(rvalue instanceof Array))
-        error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
-    if (!env.qmakeVars[lvalue])
-        return undefined;
-
     if (!arrayContainsOnly(rvalue, env.qtValidValues))
         error("QtRemovingAssignmentStatement: invalid QT value");
 
@@ -303,35 +283,24 @@ HeadersBuiltinVariable
     = "HEADERS"
 HeadersAssignmentStatement
     = lvalue:HeadersBuiltinVariable AssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array))
-        error("qmake '=' operator rvalue must be a string array");
     return assignVariable(env.qmakeVars, lvalue, rvalue ? rvalue : "");
 }
 
 // HEADERS += common.h lib1.h lib2.h backend.h
 HeadersAppendingAssignmentStatement
     = lvalue:HeadersBuiltinVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array))
-        error("qmake '+=' operator rvalue must be a string array");
-
     return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // HEADERS *= common.h lib1.h lib2.h backend.h
 HeadersAppendingUniqueAssignmentStatement
     = lvalue:HeadersBuiltinVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array))
-        error("qmake '*=' operator rvalue must be a string array");
-
     return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // HEADERS -= common.h lib1.h lib2.h backend.h
 HeadersRemovingUniqueAssignmentStatement
     = lvalue:HeadersBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
-    if (!(rvalue instanceof Array))
-        error("qmake '-=' operator rvalue must be a string array");
-
     return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
@@ -341,7 +310,7 @@ HeadersRemovingUniqueAssignmentStatement
 SourcesBuiltinVariable
     = "SOURCES"
 SourcesAssignmentStatement
-    = lvalue:SourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    = lvalue:SourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression? {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
