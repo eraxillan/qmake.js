@@ -245,8 +245,7 @@ function peg$parse(input, options) {
           if (!arrayContainsOnly(rvalue, env.configValidValues))
               error("ConfigAppendingAssignmentStatement: invalid CONFIG value");
 
-          env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
-          return {name:lvalue, op:"+=", value:rvalue};
+          return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
       },
       peg$c30 = function(lvalue, rvalue) {
           if (!(rvalue instanceof Array))
@@ -296,8 +295,7 @@ function peg$parse(input, options) {
           if (!arrayContainsOnly(rvalue, env.qtValidValues))
               error("QtAppendingAssignmentStatement: invalid QT value");
 
-          env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
-          return {name:lvalue, op:"+=", value:rvalue};
+          return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
       },
       peg$c36 = function(lvalue, rvalue) {
           if (!(rvalue instanceof Array))
@@ -339,11 +337,8 @@ function peg$parse(input, options) {
       peg$c41 = function(lvalue, rvalue) {
           if (!(rvalue instanceof Array))
               error("qmake '+=' operator rvalue must be a string array");
-          if (!env.qmakeVars[lvalue])
-              env.qmakeVars[lvalue] = [];
 
-          env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
-          return {name:lvalue, op:"+=", value:rvalue};
+          return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
       },
       peg$c42 = function(lvalue, rvalue) {
           if (!(rvalue instanceof Array))
@@ -6811,6 +6806,14 @@ function peg$parse(input, options) {
   function assignVariable(dict, name, value) {
       dict[name] = value;
       return {name:name, op:"=", value:value};
+  }
+
+  function appendAssignVariable(dict, name, value) {
+      if (!dict[name])
+          dict[name] = [];
+
+      dict[name] = dict[name].concat(value);
+      return {name:name, op:"+=", value:value};
   }
 
   function arrayContainsOnly(testArray, referenceArray) {

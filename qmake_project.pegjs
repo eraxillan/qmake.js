@@ -38,6 +38,14 @@ function assignVariable(dict, name, value) {
     return {name:name, op:"=", value:value};
 }
 
+function appendAssignVariable(dict, name, value) {
+    if (!dict[name])
+        dict[name] = [];
+
+    dict[name] = dict[name].concat(value);
+    return {name:name, op:"+=", value:value};
+}
+
 function arrayContainsOnly(testArray, referenceArray) {
     // TODO: handle corner cases
     
@@ -170,8 +178,7 @@ ConfigAppendingAssignmentStatement
     if (!arrayContainsOnly(rvalue, env.configValidValues))
         error("ConfigAppendingAssignmentStatement: invalid CONFIG value");
 
-    env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
-    return {name:lvalue, op:"+=", value:rvalue};
+    return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 ConfigAppendingUniqueAssignmentStatement
@@ -244,8 +251,7 @@ QtAppendingAssignmentStatement
     if (!arrayContainsOnly(rvalue, env.qtValidValues))
         error("QtAppendingAssignmentStatement: invalid QT value");
 
-    env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
-    return {name:lvalue, op:"+=", value:rvalue};
+    return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 QtAppendingUniqueAssignmentStatement
@@ -301,11 +307,8 @@ HeadersAppendingAssignmentStatement
     = lvalue:HeadersBuiltinVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
     if (!(rvalue instanceof Array))
         error("qmake '+=' operator rvalue must be a string array");
-    if (!env.qmakeVars[lvalue])
-        env.qmakeVars[lvalue] = [];
 
-    env.qmakeVars[lvalue] = env.qmakeVars[lvalue].concat(rvalue);
-    return {name:lvalue, op:"+=", value:rvalue};
+    return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // HEADERS *= common.h lib1.h lib2.h backend.h
@@ -337,8 +340,8 @@ HeadersRemovingUniqueAssignmentStatement
     }
     return {name:lvalue, op:"-=", value:rvalue};
 }
+
 // SOURCES =/+=/*=/-= common.cpp backend.cpp
-// FIXME: implement
 
 // SOURCES = common.cpp backend.cpp
 SourcesBuiltinVariable
