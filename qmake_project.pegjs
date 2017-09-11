@@ -167,6 +167,8 @@ GenericAssignmentStatement
     / TranslationsAppendingAssignmentStatement
     / TranslationsAppendingUniqueAssignmentStatement
     / TranslationsRemovingAssignmentStatement
+    // DEF_FILE (OS=Windows, TEMPLATE=app)
+    / DefFileAssignmentStatement
     // Output directories for generated files
     / DestdirAssignmentStatement       // DESTDIR
     / UiDirAssignmentStatement         // UI_DIR
@@ -529,6 +531,12 @@ ObjectsDirAssignmentStatement
 // MOC_DIR = $${APP_BUILD_DIR}
 MocDirAssignmentStatement
     = lvalue:"MOC_DIR" rvalue:DirAssignmentRvalueTail {
+    return assignVariable(env.qmakeVars, lvalue, rvalue);
+}
+
+// DEF_FILE = libtest.def
+DefFileAssignmentStatement
+    = lvalue:"DEF_FILE" AssignmentOperator rvalue:RvalueExpression? {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
