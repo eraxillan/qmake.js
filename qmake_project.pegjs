@@ -142,12 +142,31 @@ GenericAssignmentStatement
     / SourcesAppendingAssignmentStatement
     / SourcesAppendingUniqueAssignmentStatement
     / SourcesRemovingAssignmentStatement
-
-    / LexSourcesAssignmentStatement    // LEXSOURCES
-    / YaccSourcesAssignmentStatement   // YACCSOURCES
-    / FormsAssignmentStatement         // FORMS
-    / ResourcesAssignmentStatement     // RESOURCES
-    / TranslationsAssignmentStatement  // TRANSLATIONS
+    // LEXSOURCES
+    / LexSourcesAssignmentStatement
+    / LexSourcesAppendingAssignmentStatement
+    / LexSourcesAppendingUniqueAssignmentStatement
+    / LexSourcesRemovingAssignmentStatement
+    // YACCSOURCES
+    / YaccSourcesAssignmentStatement
+    / YaccSourcesAppendingAssignmentStatement
+    / YaccSourcesAppendingUniqueAssignmentStatement
+    / YaccSourcesRemovingAssignmentStatement
+    // FORMS
+    / FormsAssignmentStatement
+    / FormsAppendingAssignmentStatement
+    / FormsAppendingUniqueAssignmentStatement
+    / FormsRemovingAssignmentStatement
+    // RESOURCES
+    / ResourcesAssignmentStatement
+    / ResourcesAppendingAssignmentStatement
+    / ResourcesAppendingUniqueAssignmentStatement
+    / ResourcesRemovingAssignmentStatement
+    // TRANSLATIONS
+    / TranslationsAssignmentStatement
+    / TranslationsAppendingAssignmentStatement
+    / TranslationsAppendingUniqueAssignmentStatement
+    / TranslationsRemovingAssignmentStatement
     // Output directories for generated files
     / DestdirAssignmentStatement       // DESTDIR
     / UiDirAssignmentStatement         // UI_DIR
@@ -347,97 +366,139 @@ SourcesRemovingAssignmentStatement
 LexSourcesBuiltinVariable
     = "LEXSOURCES"
 LexSourcesAssignmentStatement
-    = lvalue:LexSourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    = lvalue:LexSourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression? {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // LEXSOURCES += lexer_1.l lexer_2.l lexer_3.l
-// FIXME: implement
+LexSourcesAppendingAssignmentStatement
+    = lvalue:LexSourcesBuiltinVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
+    return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // LEXSOURCES *= lexer_1.l lexer_2.l lexer_3.l
-// FIXME: implement
+LexSourcesAppendingUniqueAssignmentStatement
+    = lvalue:LexSourcesBuiltinVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
+    return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // LEXSOURCES -= lexer_1.l lexer_2.l lexer_3.l
-// FIXME: implement
+LexSourcesRemovingAssignmentStatement
+    = lvalue:LexSourcesBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
+    return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // YACCSOURCES =/+=/*=/-= moc.y js.y
-// FIXME: implement
 
 // YACCSOURCES = moc.y js.y
 YaccSourcesBuiltinVariable
     = "YACCSOURCES"
 YaccSourcesAssignmentStatement
-    = lvalue:YaccSourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    = lvalue:YaccSourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression? {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // YACCSOURCES += moc.y js.y
-// FIXME: implement
+YaccSourcesAppendingAssignmentStatement
+    = lvalue:YaccSourcesBuiltinVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
+    return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // YACCSOURCES *= moc.y js.y
-// FIXME: implement
+YaccSourcesAppendingUniqueAssignmentStatement
+    = lvalue:YaccSourcesBuiltinVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
+    return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // YACCSOURCES -= moc.y js.y
-// FIXME: implement
+YaccSourcesRemovingAssignmentStatement
+    = lvalue:YaccSourcesBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
+    return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // FORMS =/+=/*=/-= mydialog.ui mywidget.ui myconfig.ui
-// FIXME: implement
 
 // FORMS = mydialog.ui mywidget.ui myconfig.ui
 FormsBuiltinVariable
     = "FORMS"
 FormsAssignmentStatement
-    = lvalue:FormsBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    = lvalue:FormsBuiltinVariable AssignmentOperator rvalue:RvalueExpression? {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // FORMS += mydialog.ui mywidget.ui myconfig.ui
-// FIXME: implement
+FormsAppendingAssignmentStatement
+    = lvalue:FormsBuiltinVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
+    return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // FORMS *= mydialog.ui mywidget.ui myconfig.ui
-// FIXME: implement
+FormsAppendingUniqueAssignmentStatement
+    = lvalue:FormsBuiltinVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
+    return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // FORMS -= mydialog.ui mywidget.ui myconfig.ui
+FormsRemovingAssignmentStatement
+    = lvalue:FormsBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
+    return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // RESOURCES =/+=/*=/-= icons.qrc strings.qrc
-// FIXME: implement
 
 // RESOURCES = icons.qrc strings.qrc
 ResourcesBuiltinVariable
     = "RESOURCES"
 ResourcesAssignmentStatement
-    = lvalue:ResourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    = lvalue:ResourcesBuiltinVariable AssignmentOperator rvalue:RvalueExpression? {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // RESOURCES += icons.qrc strings.qrc
-// FIXME: implement
+ResourcesAppendingAssignmentStatement
+    = lvalue:ResourcesBuiltinVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
+    return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // RESOURCES *= icons.qrc strings.qrc
-// FIXME: implement
+ResourcesAppendingUniqueAssignmentStatement
+    = lvalue:ResourcesBuiltinVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
+    return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // RESOURCES -= icons.qrc strings.qrc
-// FIXME: implement
+ResourcesRemovingAssignmentStatement
+    = lvalue:ResourcesBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
+    return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // TRANSLATIONS =/+=/*=/-= en.ts ru.ts es.ts
-// FIXME: implement
 
 // TRANSLATIONS = en.ts ru.ts es.ts
 TranslationsBuiltinVariable
     = "TRANSLATIONS"
 TranslationsAssignmentStatement
-    = lvalue:TranslationsBuiltinVariable AssignmentOperator rvalue:RvalueExpression {
+    = lvalue:TranslationsBuiltinVariable AssignmentOperator rvalue:RvalueExpression? {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
 // TRANSLATIONS += en.ts ru.ts es.ts
-// FIXME: implement
+TranslationsAppendingAssignmentStatement
+    = lvalue:TranslationsBuiltinVariable AppendingAssignmentOperator rvalue:RvalueExpression? {
+    return appendAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // TRANSLATIONS *= en.ts ru.ts es.ts
-// FIXME: implement
+TranslationsAppendingUniqueAssignmentStatement
+    = lvalue:TranslationsBuiltinVariable AppendingUniqueAssignmentOperator rvalue:RvalueExpression? {
+    return appendUniqueAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // TRANSLATIONS -= en.ts ru.ts es.ts
-// FIXME: implement
+TranslationsRemovingAssignmentStatement
+    = lvalue:TranslationsBuiltinVariable RemovingAssignmentOperator rvalue:RvalueExpression? {
+    return removeAssignVariable(env.qmakeVars, lvalue, rvalue);
+}
 
 // -------------------------------------------------------------------------------------------------
 
