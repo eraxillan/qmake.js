@@ -169,6 +169,8 @@ GenericAssignmentStatement
     / TranslationsRemovingAssignmentStatement
     // DEF_FILE (OS=Windows, TEMPLATE=app)
     / DefFileAssignmentStatement
+    // DISTFILES
+    / DistFilesAssignmentStatement
     // Output directories for generated files
     / DestdirAssignmentStatement       // DESTDIR
     / UiDirAssignmentStatement         // UI_DIR
@@ -534,9 +536,16 @@ MocDirAssignmentStatement
     return assignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
+// FIXME: allow only one item instead of list
 // DEF_FILE = libtest.def
 DefFileAssignmentStatement
     = lvalue:"DEF_FILE" AssignmentOperator rvalue:RvalueExpression? {
+    return assignVariable(env.qmakeVars, lvalue, rvalue);
+}
+
+// DISTFILES = test.txt script.sh
+DistFilesAssignmentStatement
+    = lvalue:"DISTFILES" AssignmentOperator rvalue:RvalueExpression? {
     return assignVariable(env.qmakeVars, lvalue, rvalue);
 }
 
