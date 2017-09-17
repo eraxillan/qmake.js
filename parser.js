@@ -325,41 +325,16 @@ function peg$parse(input, options) {
       peg$c68 = "DISTFILES",
       peg$c69 = peg$literalExpectation("DISTFILES", false),
       peg$c70 = function(lvalue, rvalue) {
-          if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
-          if (!rvalue)
-              rvalue = [];
-
           return assignVariable(env.userVars, lvalue, rvalue);
       },
       peg$c71 = function(lvalue, rvalue) {
-          if (!(rvalue instanceof Array)) error("qmake '+=' operator rvalue must be a list (i.e. JS Array)");
-          if (!env.userVars[lvalue])
-              env.userVars[lvalue] = [];
-
-          env.userVars[lvalue] = env.userVars[lvalue].concat(rvalue);
-          return {name:lvalue, op:"+=", value:rvalue};
+          return appendAssignVariable(env.userVars, lvalue, rvalue);
       },
       peg$c72 = function(lvalue, rvalue) {
-          if (!(rvalue instanceof Array)) error("qmake '*=' operator rvalue must be a list (i.e. JS Array)");
-          if (!env.userVars[lvalue])
-              env.userVars[lvalue] = rvalue;
-          for (var i = 0; i < rvalue.length; ++i) {
-              if (env.userVars[lvalue].indexOf(rvalue[i]) < 0)
-                  env.userVars[lvalue].push(rvalue[i]);
-          }
-          return {name:lvalue, op:"*=", value:rvalue};
+          return appendUniqueAssignVariable(env.userVars, lvalue, rvalue);
       },
       peg$c73 = function(lvalue, rvalue) {
-          if (!(rvalue instanceof Array)) error("qmake '-=' operator rvalue must be a list (i.e. JS Array)");
-          if (!env.userVars[lvalue])
-              return undefined;
-          if (!(rvalue instanceof Array)) error("qmake '=' operator rvalue must be a list (i.e. JS Array)");
-
-          // Search for rvalue in the array and remove all occurences
-          for (var i = 0; i < rvalue.length; ++i) {
-              env.userVars[lvalue] = env.userVars[lvalue].filter(function(item) { return (item !== rvalue[i]); });
-          }
-          return {name:lvalue, op:"-=", value:rvalue};
+          return removeAssignVariable(env.userVars, lvalue, rvalue);
       },
       peg$c74 = "\\",
       peg$c75 = peg$literalExpectation("\\", false),
