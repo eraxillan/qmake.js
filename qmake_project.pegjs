@@ -148,6 +148,20 @@ function validateAssignmentOperands(variableDescription, rvalue) {
     }
 }
 
+function expandVariableValue(variableDescription) {
+    switch (variableDescription.type) {
+        case env.VariableTypeEnum.STRING:
+        case env.VariableTypeEnum.RESTRICTED_STRING:
+            return variableDescription.value;
+        case env.VariableTypeEnum.STRING_LIST:
+        case env.VariableTypeEnum.RESTRICTED_STRING_LIST:
+            return variableDescription.value.join(" ");
+        default: {
+            error("Unsupported variable type " + variableDescription.type);
+        }
+    }
+}
+
 function arrayContainsOnly(testArray, referenceArray) {
     // TODO: handle corner cases
     
@@ -284,19 +298,8 @@ VariableExpansionExpression
 
 VariableExpansionExpressionEmbed
     = "$${" id:VariableIdentifier (!"(") "}" {
-    if (isBuiltinVariable(id)) {
-        switch (env.builtinVariables[id].type) {
-            case env.VariableTypeEnum.STRING:
-            case env.VariableTypeEnum.RESTRICTED_STRING:
-                return env.builtinVariables[id].value;
-            case env.VariableTypeEnum.STRING_LIST:
-            case env.VariableTypeEnum.RESTRICTED_STRING_LIST:
-                return env.builtinVariables[id].value.join(" ");
-            default: {
-                error("Unsupported variable type " + env.builtinVariables[lvalue].type);
-            }
-        }
-    }
+    if (isBuiltinVariable(id))
+        return expandVariableValue(env.builtinVariables[id]);
 
     if (env.userVars && env.userVars[id]) {
         return env.userVars[id].join(" ");
@@ -308,19 +311,8 @@ VariableExpansionExpressionEmbed
 
 VariableExpansionExpressionLone
     = "$$" id:VariableIdentifier (!"(") {   
-    if (isBuiltinVariable(id)) {
-        switch (env.builtinVariables[id].type) {
-            case env.VariableTypeEnum.STRING:
-            case env.VariableTypeEnum.RESTRICTED_STRING:
-                return env.builtinVariables[id].value;
-            case env.VariableTypeEnum.STRING_LIST:
-            case env.VariableTypeEnum.RESTRICTED_STRING_LIST:
-                return env.builtinVariables[id].value.join(" ");
-            default: {
-                error("Unsupported variable type " + env.builtinVariables[lvalue].type);
-            }
-        }
-    }
+    if (isBuiltinVariable(id))
+        return expandVariableValue(env.builtinVariables[id]);
 
     if (env.userVars && env.userVars[id])
         return env.userVars[id].join(" ");

@@ -256,19 +256,8 @@ function peg$parse(input, options) {
       peg$c23 = "}",
       peg$c24 = peg$literalExpectation("}", false),
       peg$c25 = function(id) {
-          if (isBuiltinVariable(id)) {
-              switch (env.builtinVariables[id].type) {
-                  case env.VariableTypeEnum.STRING:
-                  case env.VariableTypeEnum.RESTRICTED_STRING:
-                      return env.builtinVariables[id].value;
-                  case env.VariableTypeEnum.STRING_LIST:
-                  case env.VariableTypeEnum.RESTRICTED_STRING_LIST:
-                      return env.builtinVariables[id].value.join(" ");
-                  default: {
-                      error("Unsupported variable type " + env.builtinVariables[lvalue].type);
-                  }
-              }
-          }
+          if (isBuiltinVariable(id))
+              return expandVariableValue(env.builtinVariables[id]);
 
           if (env.userVars && env.userVars[id]) {
               return env.userVars[id].join(" ");
@@ -280,19 +269,8 @@ function peg$parse(input, options) {
       peg$c26 = "$$",
       peg$c27 = peg$literalExpectation("$$", false),
       peg$c28 = function(id) {   
-          if (isBuiltinVariable(id)) {
-              switch (env.builtinVariables[id].type) {
-                  case env.VariableTypeEnum.STRING:
-                  case env.VariableTypeEnum.RESTRICTED_STRING:
-                      return env.builtinVariables[id].value;
-                  case env.VariableTypeEnum.STRING_LIST:
-                  case env.VariableTypeEnum.RESTRICTED_STRING_LIST:
-                      return env.builtinVariables[id].value.join(" ");
-                  default: {
-                      error("Unsupported variable type " + env.builtinVariables[lvalue].type);
-                  }
-              }
-          }
+          if (isBuiltinVariable(id))
+              return expandVariableValue(env.builtinVariables[id]);
 
           if (env.userVars && env.userVars[id])
               return env.userVars[id].join(" ");
@@ -4813,6 +4791,20 @@ function peg$parse(input, options) {
           case env.VariableTypeEnum.STRING_LIST: {
               break;
           }
+          default: {
+              error("Unsupported variable type " + variableDescription.type);
+          }
+      }
+  }
+
+  function expandVariableValue(variableDescription) {
+      switch (variableDescription.type) {
+          case env.VariableTypeEnum.STRING:
+          case env.VariableTypeEnum.RESTRICTED_STRING:
+              return variableDescription.value;
+          case env.VariableTypeEnum.STRING_LIST:
+          case env.VariableTypeEnum.RESTRICTED_STRING_LIST:
+              return variableDescription.value.join(" ");
           default: {
               error("Unsupported variable type " + variableDescription.type);
           }
