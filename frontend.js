@@ -88,6 +88,13 @@ function logPegjsEvent(evt) {
     }
 }
 
+function logBuiltinVariables(builtinVariables) {
+    // parserOutput.builtinVariables
+    for (var name in builtinVariables) {
+        winston.info(name + " = " + builtinVariables[name].value);
+    }
+}
+
 // -------------------------------------------------------------------------------------------------
 
 if (process.argv.length <= 2) {
@@ -116,7 +123,8 @@ try {
     var parserOutput = parser.parse(proFileContents, {startRule: "Start", tracer: { trace: logPegjsEvent }});
     logSeparatorLine();
     winston.trace("Qt qmake project file was successfully parsed:");
-    winston.info("qmake built-in variables:", parserOutput.qmakeVars);
+    winston.info("qmake built-in variables:");
+    logBuiltinVariables(parserOutput.builtinVariables);
     winston.info("user-defined variables:", parserOutput.userVars);
 } catch (err) {
     winston.error("Qt qmake project file parsing FAILED: ", err.message);
