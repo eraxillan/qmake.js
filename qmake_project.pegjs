@@ -187,10 +187,10 @@ GenericAssignmentStatementT
     = Whitespace* s:GenericAssignmentStatement Whitespace* { return s; }
 
 GenericAssignmentStatement
-    = UserVariableAssignmentStatement
-    / UserVariableAppendingAssignmentStatement
-    / UserVariableAppendingUniqueAssignmentStatement
-    / UserVariableRemovingAssignmentStatement
+    = VariableAssignmentStatement
+    / VariableAppendingAssignmentStatement
+    / VariableAppendingUniqueAssignmentStatement
+    / VariableRemovingAssignmentStatement
 
 // -------------------------------------------------------------------------------------------------
 
@@ -212,7 +212,7 @@ Comment "Comment"
 
 // -------------------------------------------------------------------------------------------------
 
-UserVariableAssignmentStatement
+VariableAssignmentStatement
     = lvalue:VariableIdentifier AssignmentOperator rvalue:RvalueExpression {
     if (isBuiltinVariable(lvalue))
        validateAssignmentOperands(env.builtinVariables[lvalue], rvalue);
@@ -220,7 +220,7 @@ UserVariableAssignmentStatement
     return assignVariable(isBuiltinVariable(lvalue), isBuiltinVariable(lvalue) ? env.builtinVariables: env.userVars, lvalue, rvalue);
 }
 
-UserVariableAppendingAssignmentStatement
+VariableAppendingAssignmentStatement
     = lvalue:VariableIdentifier AppendingAssignmentOperator rvalue:RvalueExpression {
     if (isBuiltinVariable(lvalue))
         validateAssignmentOperands(env.builtinVariables[lvalue], rvalue);
@@ -228,7 +228,7 @@ UserVariableAppendingAssignmentStatement
     return appendAssignVariable(isBuiltinVariable(lvalue), isBuiltinVariable(lvalue) ? env.builtinVariables : env.userVars, lvalue, rvalue);
 }
 
-UserVariableAppendingUniqueAssignmentStatement
+VariableAppendingUniqueAssignmentStatement
     = lvalue:VariableIdentifier AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
     if (isBuiltinVariable(lvalue))
         validateAssignmentOperands(env.builtinVariables[lvalue], rvalue);
@@ -236,7 +236,7 @@ UserVariableAppendingUniqueAssignmentStatement
     return appendUniqueAssignVariable(isBuiltinVariable(lvalue), isBuiltinVariable(lvalue) ? env.builtinVariables : env.userVars, lvalue, rvalue);
 }
 
-UserVariableRemovingAssignmentStatement
+VariableRemovingAssignmentStatement
     = lvalue:VariableIdentifier RemovingAssignmentOperator rvalue:RvalueExpression {
     if (isBuiltinVariable(lvalue))
         validateAssignmentOperands(env.builtinVariables[lvalue], rvalue);

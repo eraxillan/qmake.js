@@ -395,9 +395,6 @@ describe("qmake built-in variables test", function() {
         it('valid CONFIG+=release debug ... separate_debug_info assignment statement', function() {
             var parserOutput = parseQmakeProjectFile("test/data/qmake-variables/CONFIG/config-appending-assignment.pro");
             assert.equal(true,  parserOutput.result);
-            console.log("--------------------------------------------------------------------")
-            console.log(parserOutput.builtinVariables["CONFIG"].value)
-            console.log("--------------------------------------------------------------------")
             assert.sameMembers([
                 // Linux-specific
                 "linux", "unix", "posix", "gcc", "x11",

@@ -256,7 +256,6 @@ function peg$parse(input, options) {
       peg$c23 = "}",
       peg$c24 = peg$literalExpectation("}", false),
       peg$c25 = function(id) {
-          //if (env.builtinVariables && env.builtinVariables[id].value)
           if (isBuiltinVariable(id)) {
               switch (env.builtinVariables[id].type) {
                   case env.VariableTypeEnum.STRING:
@@ -281,7 +280,6 @@ function peg$parse(input, options) {
       peg$c26 = "$$",
       peg$c27 = peg$literalExpectation("$$", false),
       peg$c28 = function(id) {   
-          //if (env.builtinVariables && env.builtinVariables[id].value)
           if (isBuiltinVariable(id)) {
               switch (env.builtinVariables[id].type) {
                   case env.VariableTypeEnum.STRING:
@@ -776,13 +774,13 @@ function peg$parse(input, options) {
       location: peg$computeLocation(startPos, startPos)
     });
 
-    s0 = peg$parseUserVariableAssignmentStatement();
+    s0 = peg$parseVariableAssignmentStatement();
     if (s0 === peg$FAILED) {
-      s0 = peg$parseUserVariableAppendingAssignmentStatement();
+      s0 = peg$parseVariableAppendingAssignmentStatement();
       if (s0 === peg$FAILED) {
-        s0 = peg$parseUserVariableAppendingUniqueAssignmentStatement();
+        s0 = peg$parseVariableAppendingUniqueAssignmentStatement();
         if (s0 === peg$FAILED) {
-          s0 = peg$parseUserVariableRemovingAssignmentStatement();
+          s0 = peg$parseVariableRemovingAssignmentStatement();
         }
       }
     }
@@ -1058,13 +1056,13 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parseUserVariableAssignmentStatement() {
+  function peg$parseVariableAssignmentStatement() {
     var s0, s1, s2, s3,
         startPos = peg$currPos;
 
     peg$tracer.trace({
       type:     "rule.enter",
-      rule:     "UserVariableAssignmentStatement",
+      rule:     "VariableAssignmentStatement",
       location: peg$computeLocation(startPos, startPos)
     });
 
@@ -1094,14 +1092,14 @@ function peg$parse(input, options) {
     if (s0 !== peg$FAILED) {
       peg$tracer.trace({
         type:   "rule.match",
-        rule:   "UserVariableAssignmentStatement",
+        rule:   "VariableAssignmentStatement",
         result: s0,
         location: peg$computeLocation(startPos, peg$currPos)
       });
     } else {
       peg$tracer.trace({
         type: "rule.fail",
-        rule: "UserVariableAssignmentStatement",
+        rule: "VariableAssignmentStatement",
         location: peg$computeLocation(startPos, startPos)
       });
     }
@@ -1109,13 +1107,13 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parseUserVariableAppendingAssignmentStatement() {
+  function peg$parseVariableAppendingAssignmentStatement() {
     var s0, s1, s2, s3,
         startPos = peg$currPos;
 
     peg$tracer.trace({
       type:     "rule.enter",
-      rule:     "UserVariableAppendingAssignmentStatement",
+      rule:     "VariableAppendingAssignmentStatement",
       location: peg$computeLocation(startPos, startPos)
     });
 
@@ -1145,14 +1143,14 @@ function peg$parse(input, options) {
     if (s0 !== peg$FAILED) {
       peg$tracer.trace({
         type:   "rule.match",
-        rule:   "UserVariableAppendingAssignmentStatement",
+        rule:   "VariableAppendingAssignmentStatement",
         result: s0,
         location: peg$computeLocation(startPos, peg$currPos)
       });
     } else {
       peg$tracer.trace({
         type: "rule.fail",
-        rule: "UserVariableAppendingAssignmentStatement",
+        rule: "VariableAppendingAssignmentStatement",
         location: peg$computeLocation(startPos, startPos)
       });
     }
@@ -1160,13 +1158,13 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parseUserVariableAppendingUniqueAssignmentStatement() {
+  function peg$parseVariableAppendingUniqueAssignmentStatement() {
     var s0, s1, s2, s3,
         startPos = peg$currPos;
 
     peg$tracer.trace({
       type:     "rule.enter",
-      rule:     "UserVariableAppendingUniqueAssignmentStatement",
+      rule:     "VariableAppendingUniqueAssignmentStatement",
       location: peg$computeLocation(startPos, startPos)
     });
 
@@ -1196,14 +1194,14 @@ function peg$parse(input, options) {
     if (s0 !== peg$FAILED) {
       peg$tracer.trace({
         type:   "rule.match",
-        rule:   "UserVariableAppendingUniqueAssignmentStatement",
+        rule:   "VariableAppendingUniqueAssignmentStatement",
         result: s0,
         location: peg$computeLocation(startPos, peg$currPos)
       });
     } else {
       peg$tracer.trace({
         type: "rule.fail",
-        rule: "UserVariableAppendingUniqueAssignmentStatement",
+        rule: "VariableAppendingUniqueAssignmentStatement",
         location: peg$computeLocation(startPos, startPos)
       });
     }
@@ -1211,13 +1209,13 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parseUserVariableRemovingAssignmentStatement() {
+  function peg$parseVariableRemovingAssignmentStatement() {
     var s0, s1, s2, s3,
         startPos = peg$currPos;
 
     peg$tracer.trace({
       type:     "rule.enter",
-      rule:     "UserVariableRemovingAssignmentStatement",
+      rule:     "VariableRemovingAssignmentStatement",
       location: peg$computeLocation(startPos, startPos)
     });
 
@@ -1247,14 +1245,14 @@ function peg$parse(input, options) {
     if (s0 !== peg$FAILED) {
       peg$tracer.trace({
         type:   "rule.match",
-        rule:   "UserVariableRemovingAssignmentStatement",
+        rule:   "VariableRemovingAssignmentStatement",
         result: s0,
         location: peg$computeLocation(startPos, peg$currPos)
       });
     } else {
       peg$tracer.trace({
         type: "rule.fail",
-        rule: "UserVariableRemovingAssignmentStatement",
+        rule: "VariableRemovingAssignmentStatement",
         location: peg$computeLocation(startPos, startPos)
       });
     }
