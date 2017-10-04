@@ -208,28 +208,36 @@ function peg$parse(input, options) {
       	return "#" + rvalue;
       },
       peg$c9 = function(lvalue, rvalue) {
-          if (isBuiltinVariable(lvalue))
-             validateAssignmentOperands(env.builtinVariables[lvalue], rvalue);
+          if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
+             bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
 
-          return assignVariable(isBuiltinVariable(lvalue), isBuiltinVariable(lvalue) ? env.builtinVariables: env.userVars, lvalue, rvalue);
+          return bl.assignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
+              bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables: env.userVars,
+              lvalue, rvalue, error);
       },
       peg$c10 = function(lvalue, rvalue) {
-          if (isBuiltinVariable(lvalue))
-              validateAssignmentOperands(env.builtinVariables[lvalue], rvalue);
+          if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
+              bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
 
-          return appendAssignVariable(isBuiltinVariable(lvalue), isBuiltinVariable(lvalue) ? env.builtinVariables : env.userVars, lvalue, rvalue);
+          return bl.appendAssignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
+              bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables : env.userVars,
+              lvalue, rvalue, error);
       },
       peg$c11 = function(lvalue, rvalue) {
-          if (isBuiltinVariable(lvalue))
-              validateAssignmentOperands(env.builtinVariables[lvalue], rvalue);
+          if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
+              bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
 
-          return appendUniqueAssignVariable(isBuiltinVariable(lvalue), isBuiltinVariable(lvalue) ? env.builtinVariables : env.userVars, lvalue, rvalue);
+          return bl.appendUniqueAssignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
+              bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables : env.userVars,
+              lvalue, rvalue, error);
       },
       peg$c12 = function(lvalue, rvalue) {
-          if (isBuiltinVariable(lvalue))
-              validateAssignmentOperands(env.builtinVariables[lvalue], rvalue);
+          if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
+              bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
 
-          return removeAssignVariable(isBuiltinVariable(lvalue), isBuiltinVariable(lvalue) ? env.builtinVariables : env.userVars, lvalue, rvalue);
+          return bl.removeAssignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
+              bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables : env.userVars,
+              lvalue, rvalue, error);
       },
       peg$c13 = "\\",
       peg$c14 = peg$literalExpectation("\\", false),
@@ -256,8 +264,8 @@ function peg$parse(input, options) {
       peg$c23 = "}",
       peg$c24 = peg$literalExpectation("}", false),
       peg$c25 = function(id) {
-          if (isBuiltinVariable(id))
-              return expandVariableValue(env.builtinVariables[id]);
+          if (bl.isBuiltinVariable(env.builtinVariables, id))
+              return bl.expandVariableValue(env.builtinVariables[id], error);
 
           if (env.userVars && env.userVars[id]) {
               return env.userVars[id].join(" ");
@@ -269,8 +277,8 @@ function peg$parse(input, options) {
       peg$c26 = "$$",
       peg$c27 = peg$literalExpectation("$$", false),
       peg$c28 = function(id) {   
-          if (isBuiltinVariable(id))
-              return expandVariableValue(env.builtinVariables[id]);
+          if (bl.isBuiltinVariable(env.builtinVariables, id))
+              return bl.expandVariableValue(env.builtinVariables[id], error);
 
           if (env.userVars && env.userVars[id])
               return env.userVars[id].join(" ");
@@ -4649,6 +4657,7 @@ function peg$parse(input, options) {
 
 
   var env = {};
+  var bl = {};
 
   env.builtinVariables = {};
   env.VariableTypeEnum = {};
@@ -4657,6 +4666,7 @@ function peg$parse(input, options) {
   env.qmakeReplaceFuncs = {};
   env.qmakeTestFuncs = {};
 
+  initBL();
   initBuiltinVars();
   initBuiltinReplaceFunctions();
   initBuiltinTestFunctions();
@@ -4664,6 +4674,11 @@ function peg$parse(input, options) {
   function callFunction(name) {
       // FIXME: error check
       return env.qmakeReplaceFuncs[name];
+  }
+
+  function initBL() {
+      const initializer = require("./bl.js");
+      bl = initializer;
   }
 
   function initBuiltinVars() {
@@ -4681,157 +4696,6 @@ function peg$parse(input, options) {
       const initializer = require("./qmakeFunctionsInit");
       env.qmakeTestFuncs = initializer.qmakeFunctions().testFunctions;
   }
-
-  function isBuiltinVariable(name) {
-      return (env.builtinVariables[name] !== undefined);
-  }
-
-  function assignVariable(isBuiltinVariable, dict, name, value) {
-      if (!(value instanceof Array))
-          error("qmake '=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
-
-      if (isBuiltinVariable)
-          dict[name].value = value;
-      else
-          dict[name] = value;
-
-      return {name:name, op:"=", value:value};
-  }
-
-  function appendAssignVariable(isBuiltinVariable, dict, name, value) {
-      if (!(value instanceof Array))
-          error("qmake '+=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
-
-      if (!dict[name]) {
-          if (isBuiltinVariable)
-              dict[name].value = [];
-          else
-              dict[name] = [];
-      }
-
-      if (isBuiltinVariable)
-          dict[name].value = dict[name].value.concat(value);
-      else
-          dict[name] = dict[name].concat(value);
-      return {name:name, op:"+=", value:value};
-  }
-
-  function appendUniqueAssignVariable(isBuiltinVariable, dict, name, value) {
-      if (!(value instanceof Array))
-          error("qmake '*=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
-
-      if (!dict[name]) {
-          if (isBuiltinVariable)
-              dict[name].value = [];
-          else
-              dict[name] = [];
-      }
-
-      for (var i = 0; i < value.length; ++i) {
-          if (isBuiltinVariable) {
-              if (dict[name].value.indexOf(value[i]) < 0)
-                  dict[name].value.push(value[i]);
-          }
-          else {
-              if (dict[name].indexOf(value[i]) < 0)
-                  dict[name].push(value[i]);
-          }
-      }
-      return {name:name, op:"*=", value:value};
-  }
-
-  function removeAssignVariable(isBuiltinVariable, dict, name, value) {
-      if (!(value instanceof Array))
-          error("qmake '-=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
-
-      if (!dict[name])
-          return undefined;
-
-      // Search for value in the array and remove all occurences
-      for (var i = 0; i < value.length; ++i) {
-          if (isBuiltinVariable)
-              dict[name].value = dict[name].value.filter(function(item) { return (item !== value[i]); });
-          else
-              dict[name] = dict[name].filter(function(item) { return (item !== value[i]); });
-      }
-      return {name:name, op:"-=", value:value};
-  }
-
-  function validateAssignmentOperands(variableDescription, rvalue) {
-      switch (variableDescription.type) {
-          case env.VariableTypeEnum.RESTRICTED_STRING: {
-              if (rvalue.length !== 1)
-                  error(lvalue + " assignment rvalue must be a single string token, not a list");
-
-              if (!variableDescription.canBeEmpty && !rvalue[0].length)
-                  error("variable " + lvalue + " can not have empty value");
-
-              if (variableDescription.valueRange.indexOf(rvalue[0]) < 0)
-                  error(lvalue + " assignment rvalue must be one of the strings: " + variableDescription.valueRange);
-
-              break;
-          }
-          case env.VariableTypeEnum.RESTRICTED_STRING_LIST: {
-              if (!variableDescription.canBeEmpty && !rvalue.length)
-                  error("variable " + lvalue + " can not have empty value");
-
-              for (var i = 0; i < rvalue.length; i++) {
-                  if (variableDescription.valueRange.indexOf(rvalue[i]) < 0)
-                      error(lvalue + " assignment rvalue must be one of the strings: " + variableDescription.valueRange);
-              }
-
-              break;
-          }
-          case env.VariableTypeEnum.STRING: {
-              if (rvalue.length !== 1)
-                  error(lvalue + " assignment rvalue must be a single string token, not a list");
-
-              break;
-          }
-          case env.VariableTypeEnum.STRING_LIST: {
-              break;
-          }
-          default: {
-              error("Unsupported variable type " + variableDescription.type);
-          }
-      }
-  }
-
-  function expandVariableValue(variableDescription) {
-      switch (variableDescription.type) {
-          case env.VariableTypeEnum.STRING:
-          case env.VariableTypeEnum.RESTRICTED_STRING:
-              return variableDescription.value;
-          case env.VariableTypeEnum.STRING_LIST:
-          case env.VariableTypeEnum.RESTRICTED_STRING_LIST:
-              return variableDescription.value.join(" ");
-          default: {
-              error("Unsupported variable type " + variableDescription.type);
-          }
-      }
-  }
-
-  function arrayContainsOnly(testArray, referenceArray) {
-      // TODO: handle corner cases
-      
-      if (testArray && (testArray.length > 0)) {
-          for (var i = 0; i < testArray.length; i++) {
-              var found = false;
-              for (var j = 0; j < referenceArray.length; j++) {
-                  if (testArray[i] == referenceArray[j]) {
-                      found = true;
-                      break;
-                  }
-              }
-              if (!found) {
-                  console.log("arrayContainsOnly: absent value " + testArray[i]);
-                  return false;
-              }
-          }
-      }
-      return true;
-  }
-
 
 
   peg$result = peg$startRuleFunction();
