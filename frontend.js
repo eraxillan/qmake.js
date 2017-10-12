@@ -97,11 +97,28 @@ function logBuiltinVariables(builtinVariables) {
 
 // -------------------------------------------------------------------------------------------------
 
-if (process.argv.length <= 2) {
+// qmake /home/eraxillan/Projects/qmake-test/qmake-test.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+// node frontend.js /home/eraxillan/Projects/qmake-test/qmake-test.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+const cmdlineParser = require("./cmdline_options_parser");
+var qmakeOptions = process.argv.slice(2);
+var args = cmdlineParser.parseArguments(qmakeOptions);
+
+// Validation
+if (args.projectFilePaths.length < 1) {
     winston.error("Qt qmake project file name required to be parsed");
-    throw Error();
+    throw new Error();
 }
-var projectFileName = process.argv[2];
+
+// FIXME: implement
+winston.info("QMake mode: " + (args.options.makefileMode ? "makefile" : "project"));
+winston.info("mkspec: " + args.options.mkspec);
+winston.info("variable assignments: " + args.variableAssignments);
+
+winston.info("project files to be parsed: " + args.projectFilePaths);
+
+// FIXME: add support for several project files parsing
+var projectFileName = args.projectFilePaths[0];
+
 winston.trace("Qt qmake project file name:", projectFileName);
 if (!fs.existsSync(projectFileName)) {
     throw new Error("Qt qmake project file was not found:", projectFileName);
