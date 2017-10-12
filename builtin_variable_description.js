@@ -1,6 +1,7 @@
 'use strict';
 
 const ArchitectureEnum = {
+    UNKNOWN: "<unknown>",
     x86: "x86",
     x86_64: "x86_64",
     armv7: "armv7",
@@ -9,10 +10,11 @@ const ArchitectureEnum = {
 }
 
 const OsEnum = {
+    UNKNOWN: "<unknown>",   // e.g. freebsd openbsd aix sunos
     // Desktop platforms
-    WINDOWS: "windows",     // 7, 8.1, 10 (x32/x64)
-    LINUX: "linux",         // x32/x64
-    MACOS: "macos",         // 10.10, 10.11, 10.12
+    WINDOWS: "Windows",     // win32: 7, 8.1, 10 (x32/x64)
+    LINUX: "Linux",         // linux: x32/x64
+    MACOS: "Darwin",        // darwin: 10.10, 10.11, 10.12
     // Mobile platforms
     ANDROID: "android",     // API Level: 16
     IOS: "ios",             // 8, 9, 10 (armv7, arm64)
@@ -24,6 +26,7 @@ const OsEnum = {
 }
 
 const CompilerEnum = {
+    UNKNOWN: "<unknown>",
     // Microsoft Visual Studio
     MSVC: "msvc", //["2017", "2015", "2013"]
     // MinGW (GCC Windows port)
