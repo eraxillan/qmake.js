@@ -1,6 +1,7 @@
 {
 var env = {};
-var bl = {};
+var bl = require("./bl");
+var persistentStorage = require("./persistent_property_storage");
 
 env.builtinVariables = {};
 env.VariableTypeEnum = {};
@@ -9,7 +10,6 @@ env.userVars = {};
 env.qmakeReplaceFuncs = {};
 env.qmakeTestFuncs = {};
 
-initBL();
 initBuiltinVars();
 initBuiltinReplaceFunctions();
 initBuiltinTestFunctions();
@@ -17,11 +17,6 @@ initBuiltinTestFunctions();
 function callFunction(name) {
     // FIXME: error check
     return env.qmakeReplaceFuncs[name];
-}
-
-function initBL() {
-    const initializer = require("./bl.js");
-    bl = initializer;
 }
 
 function initBuiltinVars() {
@@ -157,10 +152,16 @@ RvalueExpression
 // qmake variable expansion statement:
 // 1) OUTPUT_LIB = $${BUILD_DIR}/mylib.dll
 // 2) OUTPUT_LIB = $$LIB_NAME
+// 3) DESTDIR = $(PWD)
+// 4) DESTDIR = $$(PWD)
+// 5) target.path = $$[QT_INSTALL_PLUGINS]/designer
 VariableExpansionExpression
-    = VariableExpansionExpressionEmbed / VariableExpansionExpressionLone
+    = ProjectVariableExpansionExpressionEmbed / ProjectVariableExpansionExpressionLone
+    / EnvironmentVariableExpansionExpression / EnvironmentVariableExpansionMakefileExpression
+    / PropertyExpansionExpression
 
-VariableExpansionExpressionEmbed
+// 1) Project variable expansion
+ProjectVariableExpansionExpressionEmbed
     = "$${" id:VariableIdentifier (!"(") "}" {
     if (bl.isBuiltinVariable(env.builtinVariables, id))
         return bl.expandVariableValue(env.builtinVariables[id], error);
@@ -173,7 +174,8 @@ VariableExpansionExpressionEmbed
     return "";
 }
 
-VariableExpansionExpressionLone
+// 2) Project variable expansion
+ProjectVariableExpansionExpressionLone
     = "$$" id:VariableIdentifier (!"(") {   
     if (bl.isBuiltinVariable(env.builtinVariables, id))
         return bl.expandVariableValue(env.builtinVariables[id], error);
@@ -184,6 +186,25 @@ VariableExpansionExpressionLone
     error("2) Variable " + id + " was not defined");
     return "";
 }
+
+// 3) Environment variable expansion (in makefile)
+EnvironmentVariableExpansionExpression
+    = "$(" id:VariableIdentifier (!"(") ")" {
+    // FIXME: implement
+    return process.env[id];
+}
+
+// 4) Environment variable expansion (in project)
+EnvironmentVariableExpansionMakefileExpression
+    = "$$(" id:VariableIdentifier (!"(") ")" {
+    return process.env[id];
+}
+
+// 5) QMake property expansion
+PropertyExpansionExpression
+    = "$$[" id:VariableIdentifier (!"(") "]" {
+        return persistentStorage.query(id);
+    }
 
 // -------------------------------------------------------------------------------------------------
 // qmake replace function result expansion statement:
@@ -361,7 +382,7 @@ String "String without whitespaces"
 EnquotedString "String inside quotes"
     = chars:AnyCharacter+ { return chars.join(''); }
 
-//Word = w:Letter+ { return w.join(""); }
+
 
 // Primitive types
 // FIXME:  investigate whether several string types are required - raw, word, file name, etc.
