@@ -683,10 +683,21 @@ function initBuiltinVariables() {
             isReadOnly: true,
             isRare: false
         },
-        "QMAKE_AR_CMD": {
-            type: VariableTypeEnum.STRING,
+// FIXME: undocumented
+        "QMAKE_AR": {
+            type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
-            value: "",
+            value: [],
+            canBeEmpty: false,
+            platform: [OsEnum.LINUX, OsEnum.MACOS],
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+        "QMAKE_AR_CMD": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
             canBeEmpty: false,
             platform: [OsEnum.LINUX, OsEnum.MACOS],
             template: undefined,
@@ -746,6 +757,30 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_CFLAGS_PIC": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_CFLAGS_PRECOMPILE": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_CFLAGS_RELEASE": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
@@ -772,6 +807,17 @@ function initBuiltinVariables() {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
             // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_CFLAGS_USE_PRECOMPILE": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
             value: [],
             canBeEmpty: true,
             platform: undefined,
@@ -814,9 +860,17 @@ function initBuiltinVariables() {
         },
 // FIXME: undocumented
         "QMAKE_COMPILER": {
-            type: VariableTypeEnum.RESTRICTED_STRING,
-            valueRange: undefined,
-            value: "msvc",
+            type: VariableTypeEnum.RESTRICTED_STRING_LIST,
+            valueRange: [
+                "dummy_compiler",
+                "msvc", "gcc",
+                "clang", "llvm", "clang_cl",
+                "intel_icc", "intel_icl",
+                "rim_qcc", "ghs", "sun_cc",
+                // unsupported
+                "wr_dcc"
+            ],
+            value: [ "msvc" ],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
@@ -844,6 +898,39 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_CXXFLAGS_CXX11": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_CXXFLAGS_CXX14": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_CXXFLAGS_CXX1Z": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_CXXFLAGS_DEBUG": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
@@ -855,10 +942,54 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_CXXFLAGS_GNUCXX11": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_CXXFLAGS_GNUCXX14": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_CXXFLAGS_GNUCXX1Z": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_CXXFLAGS_RELEASE": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
             // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_CXXFLAGS_PRECOMPILE": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
             value: [],
             canBeEmpty: true,
             platform: undefined,
@@ -888,6 +1019,17 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_CXXFLAGS_USE_PRECOMPILE": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_CXXFLAGS_WARN_OFF": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
@@ -900,6 +1042,18 @@ function initBuiltinVariables() {
             isRare: true
         },
         "QMAKE_CXXFLAGS_WARN_ON": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_DEFINES_WAYLAND": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
             // NOTE: runtime-evaluated
@@ -1157,11 +1311,35 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_INCDIR_WAYLAND": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [""],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_INCDIR_X11": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
             // NOTE: runtime-evaluated
             value: [""],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_INCREMENTAL_STYLE": {
+            type: VariableTypeEnum.RESTRICTED_STRING,
+            valueRange: [ "sublib", "sublibs" ],
+            // NOTE: runtime-evaluated
+            value: [ "sublib" ],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
@@ -1178,7 +1356,74 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: false
         },
+// FIXME: undocumented
+        "QMAKE_LEX": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LEXFLAGS": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_LFLAGS": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_CXX11": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_CXX14": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_CXX1Z": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_BSYMBOLIC_FUNC": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
             // NOTE: runtime-evaluated
@@ -1204,6 +1449,53 @@ function initBuiltinVariables() {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
             // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_DYNAMIC_LIST": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_GCSECTIONS": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_NEW_DTAGS": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_NOUNDEF": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
             value: [],
             canBeEmpty: true,
             platform: undefined,
@@ -1321,6 +1613,30 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_VERSION_SCRIPT": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LFLAGS_USE_GOLD": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_LFLAGS_WINDOWS": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
@@ -1376,7 +1692,31 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_LIBDIR_OPENGL_ES2": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_LIBDIR_OPENVG": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LIBDIR_WAYLAND": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
             // NOTE: runtime-evaluated
@@ -1409,7 +1749,31 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_LIBS_DYNLOAD": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_LIBS_EGL": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LIBS_NIS": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
             // NOTE: runtime-evaluated
@@ -1475,6 +1839,30 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_LIBS_WAYLAND_CLIENT": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LIBS_WAYLAND_SERVER": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_LIBS_X11": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
@@ -1506,7 +1894,44 @@ function initBuiltinVariables() {
             platform: undefined,
             template: undefined,
             isReadOnly: false,
-            isRare: true},
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LINK_C": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LINK_C_SHLIB": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_LINK_SHLIB": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            // NOTE: runtime-evaluated
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_LINK_SHLIB_CMD": {
             type: VariableTypeEnum.STRING,
             valueRange: undefined,
@@ -1529,6 +1954,28 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: true
         },
+// FIXME: undocumented
+        "QMAKE_NM": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_OBJCOPY": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_OBJECTIVE_CFLAGS": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
@@ -1541,10 +1988,35 @@ function initBuiltinVariables() {
             isRare: false
         },
 // FIXME: undocumented
-        "QMAKE_PLATFORM": {
-            type: VariableTypeEnum.RESTRICTED_STRING,
+        "QMAKE_PCH_OUTPUT_EXT": {
+            type: VariableTypeEnum.STRING,
             valueRange: undefined,
-            value: "win32",
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_PLATFORM": {
+            type: VariableTypeEnum.RESTRICTED_STRING_LIST,
+            valueRange: [
+                "dummy_platform",
+                "unix", "posix",
+                "mingw", "cygwin",
+                "win32", "winrt",
+                "mac", "macos", "osx", "macx", "darwin",
+                "ios", "tvos", "watchos", "uikit",
+                "android",
+                "linux",
+                "nacl",
+                "bsd", "freebsd", "openbsd", "netbsd",
+                "aix", "solaris", "hpux",
+                "vxworks", "qnx", "integrity",
+                "lynxos", "haiku", "boot2qt", "hurd",
+                ],
+            value: [ "win32" ],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
@@ -1571,6 +2043,28 @@ function initBuiltinVariables() {
             isReadOnly: false,
             isRare: false
         },
+// FIXME: undocumented
+        "QMAKE_PREFIX_SHLIB": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_PREFIX_STATICLIB": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
         "QMAKE_PROJECT_NAME": {
             type: VariableTypeEnum.STRING,
             valueRange: undefined,
@@ -1591,6 +2085,39 @@ function initBuiltinVariables() {
             template: undefined,
             isReadOnly: false,
             isRare: false
+        },
+// FIXME: undocumented
+        "QMAKE_RANLIB": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_STRIP": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_STRIPFLAGS_LIB": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
         },
         "QMAKE_MAC_SDK": {
             type: VariableTypeEnum.STRING,
@@ -1764,6 +2291,72 @@ function initBuiltinVariables() {
             template: undefined,
             isReadOnly: false,
             isRare: false
+        },
+// FIXME: undocumented
+        "QMAKE_WAYLAND_SCANNER": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_YACC": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_YACCFLAGS": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_YACCFLAGS_MANGLE": {
+            type: VariableTypeEnum.STRING_LIST,
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_YACC_HEADER": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
+        },
+// FIXME: undocumented
+        "QMAKE_YACC_SOURCE": {
+            type: VariableTypeEnum.STRING,
+            valueRange: undefined,
+            value: "",
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: true
         },
         "QT": {
             type: VariableTypeEnum.RESTRICTED_STRING_LIST,
