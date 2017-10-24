@@ -1,5 +1,6 @@
 'use strict';
 
+const typeUtils = require("./type_utils");
 const parser = require("./parser.js");
 
 const fs = require("fs");
@@ -88,10 +89,29 @@ function logPegjsEvent(evt) {
     }
 }
 
-function logBuiltinVariables(builtinVariables) {
-    // parserOutput.builtinVariables
-    for (var name in builtinVariables) {
-        winston.info(name + " = " + builtinVariables[name].value);
+function logVariables(variables) {
+    for (let name in variables) {
+        let value = variables[name];
+        if (!typeUtils.isEmpty(value)) {
+            let typeStr = typeUtils.typeOf(value);
+            switch (typeStr) {
+                case "string": {
+                    winston.info("[" + typeStr + "] " + name + " = |" + value + "|");
+                    break;
+                }
+                case "object": {
+                    winston.info("[" + typeStr + "] " + name + " =", value);
+                    break;
+                }
+                case "array": {
+                    winston.info("[" + typeStr + "(" + value.length + ")" + "] " + name + " = [ " + value.join(", ") + " ]");
+                    break;
+                }
+                default: {
+                    winston.error("Unsupported variable type");
+                }
+            }
+        }
     }
 }
 
@@ -99,6 +119,7 @@ function logBuiltinVariables(builtinVariables) {
 
 // qmake /home/eraxillan/Projects/qmake-test/qmake-test.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
 // node frontend.js /home/eraxillan/Projects/qmake-test/qmake-test.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+// node frontend.js ~/Documents/linux-g++-mkspec.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debugclear
 const cmdlineParser = require("./cmdline_options_parser");
 var qmakeOptions = process.argv.slice(2);
 var args = cmdlineParser.parseArguments(qmakeOptions);
@@ -141,8 +162,10 @@ try {
     logSeparatorLine();
     winston.trace("Qt qmake project file was successfully parsed:");
     winston.info("qmake built-in variables:");
-    logBuiltinVariables(parserOutput.builtinVariables);
-    winston.info("user-defined variables:", parserOutput.userVars);
+    logVariables(parserOutput.context.getBuiltinVariables());
+    winston.info();
+    winston.info("user-defined variables:");
+    logVariables(parserOutput.context.getUserDefinedVariables());
 } catch (err) {
     winston.error("Qt qmake project file parsing FAILED: ", err.message);
     winston.error("Location: ", err.location);

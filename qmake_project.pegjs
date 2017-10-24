@@ -39,7 +39,7 @@ function initBuiltinTestFunctions() {
 // -------------------------------------------------------------------------------------------------
 
 Start =
-    Statement* { return env; }
+    Statement* { return bl; }
 
 Statement
     = EmptyString
@@ -79,42 +79,22 @@ Comment "Comment"
 
 VariableAssignmentStatement
     = lvalue:VariableIdentifier AssignmentOperator rvalue:RvalueExpression {
-    if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
-       bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
-
-    return bl.assignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
-        bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables: env.userVars,
-        lvalue, rvalue, error);
+    return bl.context.assignVariable(lvalue, rvalue);
 }
 
 VariableAppendingAssignmentStatement
     = lvalue:VariableIdentifier AppendingAssignmentOperator rvalue:RvalueExpression {
-    if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
-        bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
-
-    return bl.appendAssignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
-        bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables : env.userVars,
-        lvalue, rvalue, error);
+    return bl.context.appendAssignVariable(lvalue, rvalue);
 }
 
 VariableAppendingUniqueAssignmentStatement
     = lvalue:VariableIdentifier AppendingUniqueAssignmentOperator rvalue:RvalueExpression {
-    if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
-        bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
-
-    return bl.appendUniqueAssignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
-        bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables : env.userVars,
-        lvalue, rvalue, error);
+    return bl.context.appendUniqueAssignVariable(lvalue, rvalue);
 }
 
 VariableRemovingAssignmentStatement
     = lvalue:VariableIdentifier RemovingAssignmentOperator rvalue:RvalueExpression {
-    if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
-        bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
-
-    return bl.removeAssignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
-        bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables : env.userVars,
-        lvalue, rvalue, error);
+    return bl.context.removeAssignVariable(lvalue, rvalue);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -163,12 +143,8 @@ VariableExpansionExpression
 // 1) Project variable expansion
 ProjectVariableExpansionExpressionEmbed
     = "$${" id:VariableIdentifier (!"(") "}" {
-    if (bl.isBuiltinVariable(env.builtinVariables, id))
-        return bl.expandVariableValue(env.builtinVariables[id], error);
-
-    if (env.userVars && env.userVars[id]) {
-        return env.userVars[id].join(" ");
-    }
+    if (bl.context.isBuiltinVariable(id) || bl.context.isUserDefinedVariable(id))
+        return bl.context.getVariableValue(id);
 
     error("1) Variable " + id + " was not defined");
     return "";
@@ -177,11 +153,8 @@ ProjectVariableExpansionExpressionEmbed
 // 2) Project variable expansion
 ProjectVariableExpansionExpressionLone
     = "$$" id:VariableIdentifier (!"(") {   
-    if (bl.isBuiltinVariable(env.builtinVariables, id))
-        return bl.expandVariableValue(env.builtinVariables[id], error);
-
-    if (env.userVars && env.userVars[id])
-        return env.userVars[id].join(" ");
+    if (bl.context.isBuiltinVariable(id) || bl.context.isUserDefinedVariable(id))
+        return bl.context.getVariableValue(id);
     
     error("2) Variable " + id + " was not defined");
     return "";

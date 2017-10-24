@@ -194,7 +194,7 @@ function peg$parse(input, options) {
       peg$startRuleFunctions = { Start: peg$parseStart },
       peg$startRuleFunction  = peg$parseStart,
 
-      peg$c0 = function() { return env; },
+      peg$c0 = function() { return bl; },
       peg$c1 = function(s) { return s; },
       peg$c2 = peg$otherExpectation("Empty string"),
       peg$c3 = function() {
@@ -208,36 +208,16 @@ function peg$parse(input, options) {
       	return "#" + rvalue;
       },
       peg$c9 = function(lvalue, rvalue) {
-          if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
-             bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
-
-          return bl.assignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
-              bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables: env.userVars,
-              lvalue, rvalue, error);
+          return bl.context.assignVariable(lvalue, rvalue);
       },
       peg$c10 = function(lvalue, rvalue) {
-          if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
-              bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
-
-          return bl.appendAssignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
-              bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables : env.userVars,
-              lvalue, rvalue, error);
+          return bl.context.appendAssignVariable(lvalue, rvalue);
       },
       peg$c11 = function(lvalue, rvalue) {
-          if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
-              bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
-
-          return bl.appendUniqueAssignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
-              bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables : env.userVars,
-              lvalue, rvalue, error);
+          return bl.context.appendUniqueAssignVariable(lvalue, rvalue);
       },
       peg$c12 = function(lvalue, rvalue) {
-          if (bl.isBuiltinVariable(env.builtinVariables, lvalue))
-              bl.validateAssignmentOperands(env.builtinVariables, lvalue, rvalue, error);
-
-          return bl.removeAssignVariable(bl.isBuiltinVariable(env.builtinVariables, lvalue),
-              bl.isBuiltinVariable(env.builtinVariables, lvalue) ? env.builtinVariables : env.userVars,
-              lvalue, rvalue, error);
+          return bl.context.removeAssignVariable(lvalue, rvalue);
       },
       peg$c13 = "\\",
       peg$c14 = peg$literalExpectation("\\", false),
@@ -264,12 +244,8 @@ function peg$parse(input, options) {
       peg$c23 = "}",
       peg$c24 = peg$literalExpectation("}", false),
       peg$c25 = function(id) {
-          if (bl.isBuiltinVariable(env.builtinVariables, id))
-              return bl.expandVariableValue(env.builtinVariables[id], error);
-
-          if (env.userVars && env.userVars[id]) {
-              return env.userVars[id].join(" ");
-          }
+          if (bl.context.isBuiltinVariable(id) || bl.context.isUserDefinedVariable(id))
+              return bl.context.getVariableValue(id);
 
           error("1) Variable " + id + " was not defined");
           return "";
@@ -277,11 +253,8 @@ function peg$parse(input, options) {
       peg$c26 = "$$",
       peg$c27 = peg$literalExpectation("$$", false),
       peg$c28 = function(id) {   
-          if (bl.isBuiltinVariable(env.builtinVariables, id))
-              return bl.expandVariableValue(env.builtinVariables[id], error);
-
-          if (env.userVars && env.userVars[id])
-              return env.userVars[id].join(" ");
+          if (bl.context.isBuiltinVariable(id) || bl.context.isUserDefinedVariable(id))
+              return bl.context.getVariableValue(id);
           
           error("2) Variable " + id + " was not defined");
           return "";

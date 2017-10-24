@@ -2,148 +2,297 @@
 
 // -------------------------------------------------------------------------------------------------
 
-const varDescrInit = require("./builtin_variable_description");
-const VariableTypeEnum = varDescrInit.VariableTypeEnum;
+const assert = require('chai').assert;
+const typeUtils = require("./type_utils");
+var builtinVariablesModule = require("./builtin_variable_description");
+//var builtinFunctionsModule = require("./builtin_function_description");
+//var persistentStorage = require("./persistent_property_storage");
+const VariableTypeEnum = builtinVariablesModule.VariableTypeEnum;
+
+var builtinVariables = builtinVariablesModule.builtinVariables();
+var userVariables = {};
 
 // -------------------------------------------------------------------------------------------------
 
-function isBuiltinVariable(builtinVariables, name) {
-    return (builtinVariables[name] !== undefined);
-}
+function deepClone(obj) {
+    var copy;
 
-function assignVariable(isBuiltinVariable, dict, name, value, error) {
-    if (!(value instanceof Array))
-        error("qmake '=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
+    // Handle the 3 simple types, and null or undefined
+    if (null == obj || "object" != typeof obj) return obj;
 
-    if (isBuiltinVariable)
-        dict[name].value = value;
-    else
-        dict[name] = value;
-
-    return {name:name, op:"=", value:value};
-}
-
-function appendAssignVariable(isBuiltinVariable, dict, name, value, error) {
-    if (!(value instanceof Array))
-        error("qmake '+=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
-
-    if (!dict[name]) {
-        if (isBuiltinVariable)
-            dict[name].value = [];
-        else
-            dict[name] = [];
+    // Handle Date
+    if (obj instanceof Date) {
+        copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
     }
 
-    if (isBuiltinVariable)
-        dict[name].value = dict[name].value.concat(value);
-    else
-        dict[name] = dict[name].concat(value);
-    return {name:name, op:"+=", value:value};
-}
-
-function appendUniqueAssignVariable(isBuiltinVariable, dict, name, value, error) {
-    if (!(value instanceof Array))
-        error("qmake '*=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
-
-    if (!dict[name]) {
-        if (isBuiltinVariable)
-            dict[name].value = [];
-        else
-            dict[name] = [];
-    }
-
-    for (var i = 0; i < value.length; ++i) {
-        if (isBuiltinVariable) {
-            if (dict[name].value.indexOf(value[i]) < 0)
-                dict[name].value.push(value[i]);
+    // Handle Array
+    if (obj instanceof Array) {
+        copy = [];
+        for (var i = 0, len = obj.length; i < len; i++) {
+            copy[i] = deepClone(obj[i]);
         }
-        else {
-            if (dict[name].indexOf(value[i]) < 0)
-                dict[name].push(value[i]);
-        }
+        return copy;
     }
-    return {name:name, op:"*=", value:value};
+
+    // Handle Object
+    if (obj instanceof Object) {
+        copy = {};
+        for (var attr in obj) {
+            if (obj.hasOwnProperty(attr))
+                copy[attr] = deepClone(obj[attr]);
+        }
+        return copy;
+    }
+
+    throw new Error("Unable to copy obj! Its type isn't supported.");
 }
 
-function removeAssignVariable(isBuiltinVariable, dict, name, value, error) {
-    if (!(value instanceof Array))
-        error("qmake '-=' operator rvalue must be a JS Array, but actual type is '" + typeof(value) + "' with value:\n" + value);
+// -------------------------------------------------------------------------------------------------
 
-    if (!dict[name])
-        return undefined;
+class ProExecutionContext {
 
-    // Search for value in the array and remove all occurences
-    for (var i = 0; i < value.length; ++i) {
-        if (isBuiltinVariable)
-            dict[name].value = dict[name].value.filter(function(item) { return (item !== value[i]); });
+    constructor(builtinVariables, userVariables) {
+        this.builtinVariables = builtinVariables;
+        this.userVariables = userVariables;
+        
+        this.originalBuiltinVariables = deepClone(builtinVariables);
+        this.originalUserVariables = deepClone(userVariables);
+    }
+    
+    reset() {
+        this.builtinVariables = deepClone(this.originalBuiltinVariables);
+        this.userVariables = deepClone(this.originalUserVariables);
+    }
+
+    isBuiltinVariable(name) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+
+        return (this.builtinVariables[name] !== undefined);
+    }
+
+    isUserDefinedVariable(name) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+
+        return (this.userVariables[name] !== undefined);
+    }
+
+    getBuiltinVariables() {
+        let result = {};
+        for (let name in this.builtinVariables) {
+            let variableDescription = this.builtinVariables[name];
+            result[name] = variableDescription.value;
+        }
+        return result;
+    }
+
+    getUserDefinedVariables() {
+        let result = {};
+        for (let name in this.userVariables) {
+            let variableDescription = this.userVariables[name];
+            result[name] = variableDescription.value;
+        }
+        return result;
+    }
+
+    getVariableDescription(name) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+
+        let variableDescription = undefined;
+        if (this.isBuiltinVariable(name))
+            variableDescription = this.builtinVariables[name];
+        else if (this.isUserDefinedVariable(name))
+            variableDescription = this.userVariables[name];
         else
-            dict[name] = dict[name].filter(function(item) { return (item !== value[i]); });
+            throw new Error("Undefined variable '" + name + "'");
+
+        return variableDescription;
     }
-    return {name:name, op:"-=", value:value};
-}
 
-function validateAssignmentOperands(variableDescription, lvalue, rvalue, error) {
-    switch (variableDescription[lvalue].type) {
-        case VariableTypeEnum.RESTRICTED_STRING: {
-            if (rvalue.length !== 1)
-                error(lvalue + " assignment rvalue must be a single string token, not a list");
+    addUserVariableDescription(name, type = VariableTypeEnum.STRING_LIST) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
 
-            if (!variableDescription[lvalue].canBeEmpty && !rvalue[0].length)
-                error("variable " + lvalue + " can not have empty value");
+        if (this.isBuiltinVariable(name) || this.isUserDefinedVariable(name))
+            return true;
 
-            if (variableDescription[lvalue].valueRange.indexOf(rvalue[0]) < 0)
-                error(lvalue + " assignment rvalue must be one of the strings: " + variableDescription[lvalue].valueRange);
-
-            break;
+        this.userVariables[name] = {
+            type: type, //VariableTypeEnum.STRING_LIST by default
+            valueRange: undefined,
+            value: [],
+            canBeEmpty: true,
+            platform: undefined,
+            template: undefined,
+            isReadOnly: false,
+            isRare: false
         }
-        case VariableTypeEnum.RESTRICTED_STRING_LIST: {
-            if (!variableDescription[lvalue].canBeEmpty && !rvalue.length)
-                error("variable " + lvalue + " can not have empty value");
+    }
 
-            for (var i = 0; i < rvalue.length; i++) {
-                if (variableDescription[lvalue].valueRange.indexOf(rvalue[i]) < 0)
-                    error(lvalue + " assignment rvalue must be one of the strings: " + variableDescription[lvalue].valueRange);
+    getVariableRawValue(name) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+
+        let variableDescription = this.getVariableDescription(name);
+        return variableDescription.value;
+    }
+
+    getVariableValue(name) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+
+        let variableDescription = this.getVariableDescription(name);
+        switch (variableDescription.type) {
+            case VariableTypeEnum.STRING:
+            case VariableTypeEnum.RESTRICTED_STRING:
+                return variableDescription.value;
+            case VariableTypeEnum.STRING_LIST:
+            case VariableTypeEnum.RESTRICTED_STRING_LIST:
+                return variableDescription.value.join(" ");
+            default: {
+                throw new Error("Unsupported variable type " + variableDescription.type);
             }
+        }
+    }
 
-            break;
-        }
-        case VariableTypeEnum.STRING: {
-            if (rvalue.length !== 1)
-                error(lvalue + " assignment rvalue must be a single string token, not a list");
+    // var = value
+    assignVariable(name, value) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+        assert.isTrue(typeUtils.isArray(value) || typeUtils.isString(value));
 
-            break;
+        // FIXME: currently type is always STRING_LIST, because parser always returns list
+        // Determine variable type by specified value
+        let variableType = VariableTypeEnum.STRING_LIST;
+        if (typeUtils.isString(value))
+            variableType = VariableTypeEnum.STRING;
+        /* console.log("Value:", value);
+        console.log("IsArray:", typeUtils.isArray(value));
+        console.log("IsString:", typeUtils.isString(value));
+        console.log("Auto variable type deduced:", variableType); */
+
+        if (!this.isBuiltinVariable(name) && !this.isUserDefinedVariable(name))
+            this.addUserVariableDescription(name, variableType);
+        
+        this.validateAssignmentOperands(name, value);
+
+        let variableDescription = this.getVariableDescription(name);
+        variableDescription.value = value;
+    
+        return {name:name, op:"=", value:value};
+    }
+    
+    // var += value
+    appendAssignVariable(name, value) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+        assert.isArray(value);
+
+        if (!this.isBuiltinVariable(name) && !this.isUserDefinedVariable(name))
+            this.addUserVariableDescription(name);
+        
+        this.validateAssignmentOperands(name, value);
+
+        let variableDescription = this.getVariableDescription(name);
+        variableDescription.value = variableDescription.value.concat(value);
+
+        return {name:name, op:"+=", value:value};
+    }
+    
+    // var *= value
+    appendUniqueAssignVariable(name, value) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+        assert.isArray(value);
+    
+        if (!this.isBuiltinVariable(name) && !this.isUserDefinedVariable(name))
+            this.addUserVariableDescription(name);
+        
+        this.validateAssignmentOperands(name, value);
+    
+        let variableDescription = this.getVariableDescription(name);
+        for (let i = 0; i < value.length; i++) {
+            if (variableDescription.value.indexOf(value[i]) < 0)
+                variableDescription.value.push(value[i]);
         }
-        case VariableTypeEnum.STRING_LIST: {
-            break;
+        return {name:name, op:"*=", value:value};
+    }
+    
+    // var -= value
+    removeAssignVariable(name, value) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+        assert.isArray(value);
+    
+        if (!this.isBuiltinVariable(name) && !this.isUserDefinedVariable(name))
+            throw new Error("Variable '" + name + "' must be defined before usage of the '-=' operator");
+        
+        this.validateAssignmentOperands(name, value);
+    
+        // Search for value in the array and remove all occurences
+        let variableDescription = this.getVariableDescription(name);
+        for (let i = 0; i < value.length; i++) {
+            variableDescription.value = variableDescription.value.filter(function(item) { return (item !== value[i]); });
         }
-        default: {
-            error("Unsupported variable type " + variableDescription[lvalue].type);
+        return {name:name, op:"-=", value:value};
+    }
+    
+    validateAssignmentOperands(name, value) {
+        assert.isString(name);
+        assert.isNotEmpty(name);
+        assert.isTrue(typeUtils.isArray(value) || typeUtils.isString(value));
+
+        let variableDescription = this.getVariableDescription(name);
+        switch (variableDescription.type) {
+            case VariableTypeEnum.RESTRICTED_STRING: {
+                if (value.length !== 1)
+                    throw new Error(name + " assignment value must be a single string token, not a list");
+    
+                if (!variableDescription.canBeEmpty && !value[0].length)
+                    throw new Error("variable " + name + " can not have empty value");
+    
+                if (variableDescription.valueRange.indexOf(value[0]) < 0)
+                    throw new Error(name + " assignment value must be one of the strings: " + variableDescription.valueRange);
+    
+                break;
+            }
+            case VariableTypeEnum.RESTRICTED_STRING_LIST: {
+                if (!variableDescription.canBeEmpty && !value.length)
+                    throw new Error("variable " + name + " can not have empty value");
+    
+                for (var i = 0; i < value.length; i++) {
+                    if (variableDescription.valueRange.indexOf(value[i]) < 0)
+                        throw new Error(name + " assignment rvalue must be one of the strings: " + variableDescription.valueRange);
+                }
+    
+                break;
+            }
+            case VariableTypeEnum.STRING: {
+                if (!typeUtils.isString(value))
+                    throw new Error(name + " assignment value type mismatch: '" + typeUtils.typeOf(value) + "' but string expected");
+    
+                break;
+            }
+            case VariableTypeEnum.STRING_LIST: {
+                break;
+            }
+            default: {
+                throw new Error("Unsupported variable type " + variableDescription.type);
+            }
         }
     }
 }
 
-function expandVariableValue(variableDescription, error) {
-    switch (variableDescription.type) {
-        case VariableTypeEnum.STRING:
-        case VariableTypeEnum.RESTRICTED_STRING:
-            return variableDescription.value;
-        case VariableTypeEnum.STRING_LIST:
-        case VariableTypeEnum.RESTRICTED_STRING_LIST:
-            return variableDescription.value.join(" ");
-        default: {
-            error("Unsupported variable type " + variableDescription.type);
-        }
-    }
-}
+// Singleton object
+var context = new ProExecutionContext(builtinVariables, userVariables);
 
 // -------------------------------------------------------------------------------------------------
 
 module.exports = {
-    isBuiltinVariable: isBuiltinVariable,
-    assignVariable: assignVariable,
-    appendAssignVariable: appendAssignVariable,
-    appendUniqueAssignVariable: appendUniqueAssignVariable,
-    removeAssignVariable: removeAssignVariable,
-    validateAssignmentOperands: validateAssignmentOperands,
-    expandVariableValue: expandVariableValue
+    ProExecutionContext: ProExecutionContext,
+    context: context
 };
+
