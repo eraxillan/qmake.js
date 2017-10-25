@@ -252,10 +252,10 @@ function peg$parse(input, options) {
       },
       peg$c26 = "$$",
       peg$c27 = peg$literalExpectation("$$", false),
-      peg$c28 = function(id) {   
+      peg$c28 = function(id) {
           if (bl.context.isBuiltinVariable(id) || bl.context.isUserDefinedVariable(id))
               return bl.context.getVariableValue(id);
-          
+
           error("2) Variable " + id + " was not defined");
           return "";
       },
@@ -4908,30 +4908,22 @@ function peg$parse(input, options) {
   }
 
 
+
   var env = {};
   var bl = require("./bl");
   var persistentStorage = require("./persistent_property_storage");
 
-  env.builtinVariables = {};
-  env.VariableTypeEnum = {};
+  //env.VariableTypeEnum = {};
 
-  env.userVars = {};
   env.qmakeReplaceFuncs = {};
   env.qmakeTestFuncs = {};
 
-  initBuiltinVars();
   initBuiltinReplaceFunctions();
   initBuiltinTestFunctions();
 
   function callFunction(name) {
       // FIXME: error check
       return env.qmakeReplaceFuncs[name];
-  }
-
-  function initBuiltinVars() {
-      const varDescrInit = require("./builtin_variable_description");
-      env.VariableTypeEnum = varDescrInit.VariableTypeEnum;
-      env.builtinVariables = varDescrInit.builtinVariables();
   }
 
   function initBuiltinReplaceFunctions() {
