@@ -1,7 +1,7 @@
 {
 
 var env = {};
-var bl = require("./bl");
+var bl = require("./pro_execution_context");
 var persistentStorage = require("./persistent_property_storage");
 
 env.qmakeReplaceFuncs = {};

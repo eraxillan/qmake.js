@@ -2,7 +2,7 @@
 
 const assert = require('chai').assert;
 var parser = require("../parser");
-var bl = require("../bl");
+var bl = require("../pro_execution_context");
 const typeUtils = require("../type_utils");
 const fs = require("fs");
 
@@ -41,7 +41,7 @@ function parseQmakeProjectFile(proFileName) {
 
         // NOTE: remove all user variables + set builtin ones to their default values
         bl.context.reset();
-        
+
         let parserOutputObj = parser.parse(proFileContents, {startRule: "Start", tracer: { trace: logPegjsEvent }});
         parserOutput.result = true;
         parserOutput.context = parserOutputObj.context;
@@ -120,15 +120,15 @@ describe("qmake core features", function() {
 
             assert.equal("\a\b\f\n\r\t\v", parserOutput.context.getVariableRawValue("ESC_SEQ_11")[0]);
             assert.equal("\a\b\f\n\r\t\v", parserOutput.context.getVariableRawValue("ESC_SEQ_12"));
-            
+
             assert.equal("\'test\'", parserOutput.context.getVariableRawValue("ESC_SEQ_21"));
             assert.equal("\'test\'", parserOutput.context.getVariableRawValue("ESC_SEQ_22"));
             assert.equal("\"test\"", parserOutput.context.getVariableRawValue("ESC_SEQ_23"));
             assert.equal("\"test\"", parserOutput.context.getVariableRawValue("ESC_SEQ_24"));
-            
+
             assert.equal("path\\file.txt", parserOutput.context.getVariableRawValue("ESC_SEQ_31"));
             assert.equal("path\\file.txt", parserOutput.context.getVariableRawValue("ESC_SEQ_32"));
-            
+
             assert.equal("file_mask?", parserOutput.context.getVariableRawValue("ESC_SEQ_33"));
             assert.equal("file_mask?", parserOutput.context.getVariableRawValue("ESC_SEQ_34"));
         });
@@ -178,7 +178,7 @@ describe("qmake built-in variables test", function() {
             assert.equal(false,  parserOutput.result);
         });
     });
-    
+
     // CONFIG =/+=/*=/-=
     //     release|debug|debug_and_release|debug_and_release_target(DEFAULT)
     //    |build_all|autogen_precompile_source|ordered|precompile_header
@@ -400,7 +400,7 @@ describe("qmake built-in variables test", function() {
         // *=
         // -=
         it('valid CONFIG+=release debug ... separate_debug_info assignment statement', function() {
-            let parserOutput = parseQmakeProjectFile("test/data/qmake-variables/CONFIG/config-appending-assignment.pro");  
+            let parserOutput = parseQmakeProjectFile("test/data/qmake-variables/CONFIG/config-appending-assignment.pro");
             assert.equal(true,  parserOutput.result);
             assert.sameMembers([
                 // Default values
@@ -417,7 +417,7 @@ describe("qmake built-in variables test", function() {
         });
 
     });
-    
+
     // QT =/+=/*=/-=
     //    // Qt Essentials
     //    core gui widgets network multimedia sql testlib multimediawidgets qml quick
