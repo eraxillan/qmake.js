@@ -1,28 +1,18 @@
 {
+
 var env = {};
 var bl = require("./bl");
 var persistentStorage = require("./persistent_property_storage");
 
-env.builtinVariables = {};
-env.VariableTypeEnum = {};
-
-env.userVars = {};
 env.qmakeReplaceFuncs = {};
 env.qmakeTestFuncs = {};
 
-initBuiltinVars();
 initBuiltinReplaceFunctions();
 initBuiltinTestFunctions();
 
 function callFunction(name) {
     // FIXME: error check
     return env.qmakeReplaceFuncs[name];
-}
-
-function initBuiltinVars() {
-    const varDescrInit = require("./builtin_variable_description");
-    env.VariableTypeEnum = varDescrInit.VariableTypeEnum;
-    env.builtinVariables = varDescrInit.builtinVariables();
 }
 
 function initBuiltinReplaceFunctions() {
@@ -152,10 +142,10 @@ ProjectVariableExpansionExpressionEmbed
 
 // 2) Project variable expansion
 ProjectVariableExpansionExpressionLone
-    = "$$" id:VariableIdentifier (!"(") {   
+    = "$$" id:VariableIdentifier (!"(") {
     if (bl.context.isBuiltinVariable(id) || bl.context.isUserDefinedVariable(id))
         return bl.context.getVariableValue(id);
-    
+
     error("2) Variable " + id + " was not defined");
     return "";
 }
@@ -246,7 +236,7 @@ SystemTestFunctionIdentifier
     / "isActiveConfig"                                                                              // isActiveConfig
     / "isEmpty"                                                                                     // isEmpty(variablename)
     / "isEqual"                                                                                     // isEqual
-    
+
     / "greaterThan"                                                                                 // greaterThan(variablename, value)
     / "lessThan"                                                                                    // lessThan(variablename, value)
     // Evaluation
@@ -272,7 +262,7 @@ SystemTestFunctionIdentifier
     / "message"                                                                                     // message(string)
     / "warning"                                                                                     // warning(string)
     / "error"                                                                                       // error(string)
-    
+
     // Test Function Library
     / "packagesExist"                                                                               // packagesExist(packages)
     / "prepareRecursiveTarget"                                                                      // prepareRecursiveTarget(target)
