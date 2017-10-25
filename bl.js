@@ -132,6 +132,16 @@ class ProExecutionContext {
         }
     }
 
+    getBuiltinVariableDefaultRawValue(name) {
+        if (!typeUtils.isString(name) || typeUtils.isEmpty(name))
+            throw new Error("Built-in variable name must be non-empty string");
+        
+        if (this.originalBuiltinVariables[name] === undefined)
+            throw new Error("No built-in variable with name '" + name + "' found");
+        
+        return this.originalBuiltinVariables[name].value;
+    }
+
     getVariableRawValue(name) {
         assert.isString(name);
         assert.isNotEmpty(name);
