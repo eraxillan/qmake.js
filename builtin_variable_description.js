@@ -291,12 +291,18 @@ const SupportedPlatforms = [
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 
 const VariableTypeEnum = {
-    STRING: "string",
-    STRING_LIST: "string_list",
-    RESTRICTED_STRING: "restricted_string",
-    RESTRICTED_STRING_LIST : "restricted_string_list",
-    OBJECT: "object",   // object with properties (e.g. host.arch)
-    OBJECT_LIST: "object_list"  // list of objects with properties described above
+    UNKNOWN: "<unknown>",
+    RAW_STRING: "raw_string",       // string with any characters, e.g. argument of message() test function: message(I am a raw string)
+    NUMBER: "number",               // integer number, e.g. qmake debug level: debug(1, This text will be shown under debug level 1)
+    STRING: "string",               // string without whitespaces/commas, e.g. variable name
+    STRING_LIST: "string_list",     // array of strings without whitespaces/commas
+    RESTRICTED_STRING:
+        "restricted_string",        // string without whitespaces/commas with value from the specified array, e.g. TEMPLATE = app|...|lib
+    RESTRICTED_STRING_LIST :
+        "restricted_string_list",   // array of such strings
+    OBJECT: "object",               // object with properties (e.g. host.arch)
+    OBJECT_LIST: "object_list"      // list of objects with properties described above
+    // TODO:
 //    FILE_PATH,
 //    DIR_PATH
 };
@@ -358,7 +364,7 @@ function initTemplateVariableValue() {
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------
-// qmake built-in var:
+// qmake built-in variable fields:
 // name
 // type (string or list)
 // value range
@@ -1259,8 +1265,7 @@ function initBuiltinVariables() {
         "QMAKE_INCDIR": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
-            // NOTE: runtime-evaluated
-            value: [""],
+            value: [],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
@@ -1270,8 +1275,7 @@ function initBuiltinVariables() {
         "QMAKE_INCDIR_EGL": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
-            // NOTE: runtime-evaluated
-            value: [""],
+            value: [],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
@@ -1281,8 +1285,7 @@ function initBuiltinVariables() {
         "QMAKE_INCDIR_OPENGL": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
-            // NOTE: runtime-evaluated
-            value: [""],
+            value: [],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
@@ -1292,8 +1295,7 @@ function initBuiltinVariables() {
         "QMAKE_INCDIR_OPENGL_ES2": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
-            // NOTE: runtime-evaluated
-            value: [""],
+            value: [],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
@@ -1303,8 +1305,7 @@ function initBuiltinVariables() {
         "QMAKE_INCDIR_OPENVG": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
-            // NOTE: runtime-evaluated
-            value: [""],
+            value: [],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
@@ -1315,8 +1316,7 @@ function initBuiltinVariables() {
         "QMAKE_INCDIR_WAYLAND": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
-            // NOTE: runtime-evaluated
-            value: [""],
+            value: [],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
@@ -1326,8 +1326,7 @@ function initBuiltinVariables() {
         "QMAKE_INCDIR_X11": {
             type: VariableTypeEnum.STRING_LIST,
             valueRange: undefined,
-            // NOTE: runtime-evaluated
-            value: [""],
+            value: [],
             canBeEmpty: true,
             platform: undefined,
             template: undefined,
