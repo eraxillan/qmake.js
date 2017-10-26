@@ -174,86 +174,18 @@ FunctionArguments
     = EmptyFunctionArgumentsList / FunctionArgumentsList
 EmptyFunctionArgumentsList
     = "(" Whitespace* ")" { return []; }
-//FunctionArgumentsList
-//    = "(" Whitespace* s:ExpandedString+ Whitespace* ")" { return s; }
 FunctionArgumentsList
-    = "(" Whitespace* s:StringListComma Whitespace* ")" { return s; }
+    = "(" Whitespace* s:(StringListComma / StringList) Whitespace* ")" { return s; }
 
 // -------------------------------------------------------------------------------------------------
 
 // Variables: qmake and user-defined ones
 VariableIdentifier
-    = id:Identifier {
-    return id;
-}
+    = Identifier
 
 // Functions: qmake replace and test functions and user-defined ones
 FunctionIdentifier
-    = FunctionIdentifierT
-FunctionIdentifierT
-    = SystemReplaceFunctionIdentifier / SystemTestFunctionIdentifier
-    / UserReplaceFunctionIdentifier / UserTestFunctionIdentifier
-
-// FIXME: implement using vars and add other qmake functions
-SystemReplaceFunctionIdentifier
-    = id:("first" / "list") ![_a-zA-Z0-9]+ {
-    return id;
-}
-SystemTestFunctionIdentifier
-    = id:(
-      "cache"                                                                                       // cache(variablename, [set|add|sub] [transient] [super|stash], [source variablename])
-
-    / "CONFIG"                                                                                      // CONFIG(config, [values set])
-
-    / "unset"                                                                                       // unset(variablename)
-    / "export"                                                                                      // export(variablename)
-
-    / "defined"                                                                                     // defined(name[, type])
-    / "equals"                                                                                      // equals(variablename, value)
-    / "contains"                                                                                    // contains(variablename, value)
-    / "count"                                                                                       // count(variablename, number)
-    / "infile"                                                                                      // infile(filename, var, val)
-    / "isActiveConfig"                                                                              // isActiveConfig
-    / "isEmpty"                                                                                     // isEmpty(variablename)
-    / "isEqual"                                                                                     // isEqual
-
-    / "greaterThan"                                                                                 // greaterThan(variablename, value)
-    / "lessThan"                                                                                    // lessThan(variablename, value)
-    // Evaluation
-    / "eval"                                                                                        // eval(string)
-    // Subprojects
-    / "include"                                                                                     // include(filename)
-    / "load"                                                                                        // load(feature)
-    // Execution flow control
-    / "requires"                                                                                    // requires(condition)
-    / "if"                                                                                          // if(condition)
-    / "for"                                                                                         // for(iterate, list)
-    // File system management
-    / "files"                                                                                       // files(pattern[, recursive=false])
-    / "exists"                                                                                      // exists(filename)
-    / "mkpath"                                                                                      // mkpath(dirPath)
-    / "write_file"                                                                                  // write_file(filename, [variablename, [mode]])
-    / "touch"                                                                                       // touch(filename, reference_filename)
-    // External commands execution
-    / "system"                                                                                      // system(command)
-    // Console output
-    / "debug"                                                                                       // debug(level, message)
-    / "log"                                                                                         // log(message)
-    / "message"                                                                                     // message(string)
-    / "warning"                                                                                     // warning(string)
-    / "error"                                                                                       // error(string)
-
-    // Test Function Library
-    / "packagesExist"                                                                               // packagesExist(packages)
-    / "prepareRecursiveTarget"                                                                      // prepareRecursiveTarget(target)
-    / "qtCompileTest"                                                                               // qtCompileTest(test)
-    / "qtHaveModule"                                                                                // qtHaveModule(name)
-    ) ![_a-zA-Z0-9]+ {
-    return id;
-}
-
-UserReplaceFunctionIdentifier = "FIXME: implement"
-UserTestFunctionIdentifier = "FIXME: implement"
+    = Identifier
 
 // Assignment operators
 AssignmentOperator "assignment operator ('=')"
