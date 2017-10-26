@@ -1,29 +1,9 @@
 {
 
-var env = {};
 var bl = require("./pro_execution_context");
 var persistentStorage = require("./persistent_property_storage");
+var builtinFunctionsModule = require("./builtin_function_description");
 
-env.qmakeReplaceFuncs = {};
-env.qmakeTestFuncs = {};
-
-initBuiltinReplaceFunctions();
-initBuiltinTestFunctions();
-
-function callFunction(name) {
-    // FIXME: error check
-    return env.qmakeReplaceFuncs[name];
-}
-
-function initBuiltinReplaceFunctions() {
-    const initializer = require("./qmakeFunctionsInit");
-    env.qmakeReplaceFuncs = initializer.qmakeFunctions().replaceFunctions;
-}
-
-function initBuiltinTestFunctions() {
-    const initializer = require("./qmakeFunctionsInit");
-    env.qmakeTestFuncs = initializer.qmakeFunctions().testFunctions;
-}
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -184,7 +164,7 @@ ReplaceFunctionExpansionExpressionEmbed
 
 ReplaceFunctionExpansionExpressionLone
     = "$$" id:FunctionIdentifier Whitespace* args:FunctionArguments {
-    return callFunction(id)(args);
+    return builtinFunctionsModule.replaceFunctions[id].action(args);
 }
 
 TestFunctionExpansionExpression
@@ -332,7 +312,7 @@ ExpandedStringRaw "Expanded string"
     return v1 + v2.join("");
 }
 
-// TODO: does qmake support single quotes?
+// TODO: implement single quotes support
 EnquotedExpandedString
     = '"' v1:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)
           v2:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)* '"' {
