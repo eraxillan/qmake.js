@@ -267,12 +267,12 @@ EnquotedString "String inside quotes"
 // Any character what can be used inside of whitespace/comma-separated string list item,
 // without quotes
 NonWhitespaceCharacter
-    = !(  HashLiteral / CommaLiteral / ExpandLiteral / Whitespace / LineBreak
-        / BackslashLiteral / SingleQuoteLiteral / DoubleQuoteLiteral) char:. { return char; }
+    = !(  HashLiteral / ExpandLiteral / Whitespace / LineBreak
+    / BackslashLiteral / SingleQuoteLiteral / DoubleQuoteLiteral) char:. { return char; }
     / BackslashLiteral sequence:EscapeSequence { return sequence; }
 
 AnyCharacter
-    = !(  HashLiteral / CommaLiteral / ExpandLiteral
+    = !(  HashLiteral / ExpandLiteral
         / BackslashLiteral / SingleQuoteLiteral / DoubleQuoteLiteral) char:. { return char; }
     / BackslashLiteral sequence:EscapeSequence { return sequence; }
 

@@ -47,7 +47,7 @@ winston.add(winston.transports.Console, {
     silent: false,
     json: false,
     timestamp: false,
-    
+
     handleExceptions: true,
     humanReadableUnhandledException: true
 });
@@ -61,7 +61,7 @@ winston.add(winston.transports.File, {
     timestamp: false,
     maxFiles: 10,
     maxsize: 1024,
-    
+
     handleExceptions: true,
     humanReadableUnhandledException: true
 });
@@ -104,7 +104,7 @@ function logVariables(variables) {
                     break;
                 }
                 case "array": {
-                    winston.info("[" + typeStr + "(" + value.length + ")" + "] " + name + " = [ " + value.join(", ") + " ]");
+                    winston.info("[" + typeStr + "(" + value.length + ")" + "] " + name + " = [ " + value.join("; ") + " ]");
                     break;
                 }
                 default: {

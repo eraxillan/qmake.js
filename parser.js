@@ -3365,20 +3365,17 @@ function peg$parse(input, options) {
     peg$silentFails++;
     s2 = peg$parseHashLiteral();
     if (s2 === peg$FAILED) {
-      s2 = peg$parseCommaLiteral();
+      s2 = peg$parseExpandLiteral();
       if (s2 === peg$FAILED) {
-        s2 = peg$parseExpandLiteral();
+        s2 = peg$parseWhitespace();
         if (s2 === peg$FAILED) {
-          s2 = peg$parseWhitespace();
+          s2 = peg$parseLineBreak();
           if (s2 === peg$FAILED) {
-            s2 = peg$parseLineBreak();
+            s2 = peg$parseBackslashLiteral();
             if (s2 === peg$FAILED) {
-              s2 = peg$parseBackslashLiteral();
+              s2 = peg$parseSingleQuoteLiteral();
               if (s2 === peg$FAILED) {
-                s2 = peg$parseSingleQuoteLiteral();
-                if (s2 === peg$FAILED) {
-                  s2 = peg$parseDoubleQuoteLiteral();
-                }
+                s2 = peg$parseDoubleQuoteLiteral();
               }
             }
           }
@@ -3464,16 +3461,13 @@ function peg$parse(input, options) {
     peg$silentFails++;
     s2 = peg$parseHashLiteral();
     if (s2 === peg$FAILED) {
-      s2 = peg$parseCommaLiteral();
+      s2 = peg$parseExpandLiteral();
       if (s2 === peg$FAILED) {
-        s2 = peg$parseExpandLiteral();
+        s2 = peg$parseBackslashLiteral();
         if (s2 === peg$FAILED) {
-          s2 = peg$parseBackslashLiteral();
+          s2 = peg$parseSingleQuoteLiteral();
           if (s2 === peg$FAILED) {
-            s2 = peg$parseSingleQuoteLiteral();
-            if (s2 === peg$FAILED) {
-              s2 = peg$parseDoubleQuoteLiteral();
-            }
+            s2 = peg$parseDoubleQuoteLiteral();
           }
         }
       }
