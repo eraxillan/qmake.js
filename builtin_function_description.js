@@ -1,6 +1,10 @@
 'use strict';
 
+const STR_FUNCTION_EXPAND_MARKER = "$$";
+
+// FIXME: replace assert with exceptions
 const assert = require('chai').assert;
+
 const typeUtils = require("./type_utils");
 const builtinVariables = require("./builtin_variable_description");
 const VariableTypeEnum = builtinVariables.VariableTypeEnum;
@@ -645,10 +649,7 @@ function isReplaceFunction(str) {
         "unique", "upper", "val_escape"
     ];
 
-    // FIXME: remove
-    const STR_EXPAND_MARKER = "$$";
-
-    if (!str.startsWith(STR_EXPAND_MARKER))
+    if (!str.startsWith(STR_FUNCTION_EXPAND_MARKER))
         return false;
 
     return functionNames.indexOf(str.substring(STR_EXPAND_MARKER.length)) >= 0;
@@ -656,7 +657,9 @@ function isReplaceFunction(str) {
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 
+exports.STR_FUNCTION_EXPAND_MARKER = STR_FUNCTION_EXPAND_MARKER;
 exports.replaceFunctions = initBuiltinReplaceFunctions();
 exports.testFunctions = initBuiltinTestFunctions();
 exports.isReplaceFunction = isReplaceFunction;
 exports.isTestFunction = isTestFunction;
+

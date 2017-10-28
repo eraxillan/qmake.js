@@ -230,7 +230,7 @@ StringListCommaItemOrString
     = StringListCommaItemWithComma / ExpandedString
 
 StringListCommaItemWithComma "String followed with comma"
-    = v:ExpandedString Whitespace* Comma Whitespace* {
+    = v:ExpandedString Whitespace* CommaLiteral Whitespace* {
     return v;
 }
 
@@ -244,12 +244,15 @@ ExpandedStringRaw "Expanded string"
     return v1 + v2.join("");
 }
 
-// TODO: implement single quotes support
 EnquotedExpandedString
-    = '"' v1:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)
-          v2:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)* '"' {
-    return v1 + v2.join("");
-}
+    = DoubleQuoteLiteral
+      v1:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)
+      v2:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)*
+      DoubleQuoteLiteral { return v1 + v2.join(""); }
+    / SingleQuoteLiteral
+      v1:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)
+      v2:(EnquotedString / FunctionExpansionExpression / VariableExpansionExpression)*
+      SingleQuoteLiteral { return v1 + v2.join(""); }
 
 String "String without whitespaces"
     = chars:NonWhitespaceCharacter+ { return chars.join(''); }
@@ -264,17 +267,19 @@ EnquotedString "String inside quotes"
 // Any character what can be used inside of whitespace/comma-separated string list item,
 // without quotes
 NonWhitespaceCharacter
-    = !("#" / "," / "$" / ' ' / '\t' / '\r' / '\n' / "\\" / '"' / "'") char:. { return char; }
-    / "\\" sequence:EscapeSequence { return sequence; }
+    = !(  HashLiteral / CommaLiteral / ExpandLiteral / Whitespace / LineBreak
+        / BackslashLiteral / SingleQuoteLiteral / DoubleQuoteLiteral) char:. { return char; }
+    / BackslashLiteral sequence:EscapeSequence { return sequence; }
 
 AnyCharacter
-    = !("#" / "," / "$" / "\\" / '"' / "'") char:. { return char; }
-    / "\\" sequence:EscapeSequence { return sequence; }
+    = !(  HashLiteral / CommaLiteral / ExpandLiteral
+        / BackslashLiteral / SingleQuoteLiteral / DoubleQuoteLiteral) char:. { return char; }
+    / BackslashLiteral sequence:EscapeSequence { return sequence; }
 
 EscapeSequence
-    = "'"
-    / '"'
-    / "\\"
+    = SingleQuoteLiteral
+    / DoubleQuoteLiteral
+    / BackslashLiteral
     / "?"  { return "\?";   }
     / "a"  { return "\a";   }
     / "x" digits:$(HexDigit HexDigit HexDigit HexDigit) {
@@ -299,7 +304,12 @@ OctDigit = d:[0-7]
 DecDigit = d:[0-9]
 HexDigit = d:[0-9a-fA-F]
 
-Comma = ","
+SingleQuoteLiteral = "'"
+DoubleQuoteLiteral = '"'
+ExpandLiteral = "$$"
+HashLiteral = "#"
+CommaLiteral = ","
+BackslashLiteral = "\\"
 
 // Delimeters
 LineBreak "Linebreak"
