@@ -652,7 +652,7 @@ function isReplaceFunction(str) {
     if (!str.startsWith(STR_FUNCTION_EXPAND_MARKER))
         return false;
 
-    return functionNames.indexOf(str.substring(STR_EXPAND_MARKER.length)) >= 0;
+    return functionNames.indexOf(str.substring(STR_FUNCTION_EXPAND_MARKER.length)) >= 0;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------
