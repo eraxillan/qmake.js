@@ -7,8 +7,21 @@ const assert = require('chai').assert;
 
 const typeUtils = require("./type_utils");
 var builtinVariablesModule = require("./builtin_variable_description");
-//var persistentStorage = require("./persistent_property_storage");
+var persistentStorage = require("./persistent_property_storage");
 const VariableTypeEnum = builtinVariablesModule.VariableTypeEnum;
+
+// -------------------------------------------------------------------------------------------------
+
+// 1) OUTPUT_LIB = $${LIB_NAME}
+var projectVariableExpansionRegex_1 = /\$\$\{([_a-zA-Z][_a-zA-Z0-9]*)+\}/g;
+// 2) OUTPUT_LIB = $$LIB_NAME
+var projectVariableExpansionRegex_2 = /\$\$([_a-zA-Z][_a-zA-Z0-9]*)+\b/g;
+// 3) DESTDIR = $(PWD)
+var environmentVariableExpansionRegex_1 = /\$\(([_a-zA-Z][_a-zA-Z0-9]*)+\)/g;
+// 4) DESTDIR = $$(PWD)
+var environmentVariableExpansionRegex_2 = /\$\$\(([_a-zA-Z][_a-zA-Z0-9]*)+\)/g;
+// 5) target.path = $$[QT_INSTALL_PLUGINS]/designer
+var qmakePropertyExpansionRegex = /\$\$\[([_a-zA-Z][_a-zA-Z0-9]*)+\]/g;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -297,6 +310,43 @@ class ProExecutionContext {
                 throw new Error("Unsupported variable type " + variableDescription.type);
             }
         }
+    }
+
+    expandVariables(strSource) {
+        assert.isString(strSource);
+        assert.isNotEmpty(strSource);
+
+        let replaceProVarFunc = function(getVariableValue, match, variableName, offset, string) {
+            assert.isString(variableName);
+            assert.isNotEmpty(variableName);
+            assert.isFunction(getVariableValue);
+            return this.getVariableValue(variableName);
+        }
+
+        let replaceEnvVarFunc = function(match, variableName, offset, string) {
+            assert.isString(variableName);
+            assert.isNotEmpty(variableName);
+
+            return (process.env[variableName] !== undefined) ? process.env[variableName] : "";
+        }
+
+        let replacePropertyFunc = function(match, variableName, offset, string) {
+            assert.isString(variableName);
+            assert.isNotEmpty(variableName);
+
+            return persistentStorage.query(variableName);
+        }
+
+        let strExpanded = strSource;
+        let replaceProVarFuncWrapper = replaceProVarFunc.bind(this, this.getVariableValue);
+
+        strExpanded = strExpanded.replace(projectVariableExpansionRegex_1, replaceProVarFuncWrapper);
+        strExpanded = strExpanded.replace(projectVariableExpansionRegex_2, replaceProVarFuncWrapper);
+        strExpanded = strExpanded.replace(environmentVariableExpansionRegex_2, replaceEnvVarFunc);
+        strExpanded = strExpanded.replace(environmentVariableExpansionRegex_1, replaceEnvVarFunc);
+        strExpanded = strExpanded.replace(qmakePropertyExpansionRegex, replacePropertyFunc);
+
+        return strExpanded;
     }
 }
 
