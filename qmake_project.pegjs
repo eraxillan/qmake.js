@@ -69,7 +69,7 @@ VariableRemovingAssignmentStatement
 // -------------------------------------------------------------------------------------------------
 
 SingleLineExpression
-    = Whitespace* v:(ExpandedString?) !BackslashLiteral LineBreak* {
+    = Whitespace* v:(RawString?) !BackslashLiteral LineBreak* {
     return v ? v : [""];
 }
 
@@ -78,9 +78,9 @@ SingleLineExpression
 // 3) v3 v4 LB
 // 4) X = Y LB
 MultilineExpression_1
-    = Whitespace* v:(ExpandedString?) BackslashLiteral LineBreak+ { return v; }
+    = Whitespace* v:(RawString?) BackslashLiteral LineBreak+ { return v; }
 MultilineExpression_2
-    = Whitespace* v:(ExpandedString?) !BackslashLiteral LineBreak+ { return v; }
+    = Whitespace* v:(RawString?) !BackslashLiteral LineBreak+ { return v; }
 MultilineExpression
     = v1:MultilineExpression_1* v2:MultilineExpression_2 {
     var result = [];
@@ -122,10 +122,12 @@ Identifier "Identifier"
     return s1 + s2.join("");
 }
 
-ExpandedString
-    = str:RawString {
+RawString
+    = chars:NonLinebreakCharacter+ {
+    let str = chars.join("");
+
     console.log("----------------------------------------------------------")
-    console.log("RVALUE:", str)
+    console.log("RawString:", str)
 
     let evaluator = new evaluatorModule.ExpressionEvaluator(contextModule.context);
     let rpnExpression = evaluator.convertToRPN(str);
@@ -140,9 +142,6 @@ ExpandedString
 
     console.log("----------------------------------------------------------")
 }
-
-RawString
-    = chars:NonLinebreakCharacter+ { return chars.join(""); }
 
 NonLinebreakCharacter
     = !(HashLiteral / BackslashLiteral / LineBreak) char:. { return char; }
@@ -170,17 +169,13 @@ EscapeSequence
     / "t"  { return "#t"; }
     / "v"  { return "#v"; }
 
-Letter = c:[a-zA-Z]
-
 OctDigit = d:[0-7]
 DecDigit = d:[0-9]
 HexDigit = d:[0-9a-fA-F]
 
 SingleQuoteLiteral = "'"
 DoubleQuoteLiteral = '"'
-ExpandLiteral = "$$"
 HashLiteral = "#"
-CommaLiteral = ","
 BackslashLiteral = "\\"
 
 // Delimeters
