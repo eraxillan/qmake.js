@@ -12,6 +12,8 @@ const VariableTypeEnum = builtinVariablesModule.VariableTypeEnum;
 
 // -------------------------------------------------------------------------------------------------
 
+const STR_HASH = "#";
+
 const STR_OPENING_PARENTHESIS = "(";
 const STR_CLOSING_PARENTHESIS = ")";
 const STR_OPENING_CURLY_BRACE = "{";
@@ -55,19 +57,74 @@ class ProParser {
             let token = str[i];
             console.log("ProParser::getEnquotedString: token: '" + token + "'");
 
-            if (token === quoteChar) {
+            if (token === STR_HASH) {
+                let nextToken = str[i + 1];
+
+                if (nextToken === STR_DOUBLE_QUOTE) {
+                    console.log("ProParser::getEnquotedString: Escape sequence: \"");
+
+                    enquotedStr += nextToken;
+                    i ++;
+                } else if (nextToken === STR_SINGLE_QUOTE) {
+                    console.log("ProParser::getEnquotedString: Escape sequence: \'");
+
+                    enquotedStr += nextToken;
+                    i ++;
+                } else if (nextToken === "a") {
+                    console.log("ProParser::getEnquotedString: Escape sequence: \\a");
+
+                    enquotedStr += "\a";
+                    i++;
+                } else if (nextToken === "b") {
+                    console.log("ProParser::getEnquotedString: Escape sequence: \\b");
+
+                    enquotedStr += "\b";
+                    i++;
+                } else if (nextToken === "f") {
+                    console.log("ProParser::getEnquotedString: Escape sequence: \\f");
+
+                    enquotedStr += "\f";
+                    i++;
+                } else if (nextToken === "n") {
+                    console.log("ProParser::getEnquotedString: Escape sequence: \\n");
+
+                    enquotedStr += "\n";
+                    i++;
+                } else if (nextToken === "r") {
+                    console.log("ProParser::getEnquotedString: Escape sequence: \\r");
+
+                    enquotedStr += "\r";
+                    i++;
+                } else if (nextToken === "t") {
+                    console.log("ProParser::getEnquotedString: Escape sequence: \\t");
+
+                    enquotedStr += "\t";
+                    i++;
+                } else if (nextToken === "v") {
+                    console.log("ProParser::getEnquotedString: Escape sequence: \\v");
+
+                    // "\x0B"
+                    enquotedStr += "\v";
+                    i++;
+                } else {
+                    enquotedStr += token;
+                }
+            } else if (token === quoteChar) {
+                console.log("ProParser::getEnquotedString: closing quote char found");
+
                 count ++;
                 i ++;
                 break;
+            } else {
+                enquotedStr += token;
             }
-            enquotedStr += token;
         } while (true);
 
         if (count !== 2) {
-            throw new Error("Unpaired double quote character found");
+            throw new Error("Unpaired double quote character found; count = " + count);
         }
 
-        return enquotedStr;
+        return {string: enquotedStr, length: i};
     }
 
     static tokenizeString(str) {
@@ -87,14 +144,67 @@ class ProParser {
         for (let i = 0; i < str.length; i++) {
             let token = str[i];
 
-            if ((token === STR_DOUBLE_QUOTE) || (token === STR_SINGLE_QUOTE)) {
+            // Escape sequence: #' or #" means \' or \" respectively
+            if (token === STR_HASH) {
+                console.log("ProParser::tokenizeString: Internal token: '" + token + "'");
+
+                let nextToken = str[i + 1];
+                if (nextToken === STR_DOUBLE_QUOTE) {
+                    console.log("ProParser::tokenizeString: Escape sequence: \"");
+
+                    currentStr += nextToken;
+                    i++;
+                } else if (nextToken === STR_SINGLE_QUOTE) {
+                    console.log("ProParser::tokenizeString: Escape sequence: \'");
+
+                    currentStr += nextToken;
+                    i++;
+                } else if (nextToken === "a") {
+                    console.log("ProParser::tokenizeString: Escape sequence: \\a");
+
+                    currentStr += "\a";
+                    i++;
+                } else if (nextToken === "b") {
+                    console.log("ProParser::tokenizeString: Escape sequence: \\b");
+
+                    currentStr += "\b";
+                    i++;
+                } else if (nextToken === "f") {
+                    console.log("ProParser::tokenizeString: Escape sequence: \\f");
+
+                    currentStr += "\f";
+                    i++;
+                } else if (nextToken === "n") {
+                    console.log("ProParser::tokenizeString: Escape sequence: \\n");
+
+                    currentStr += "\n";
+                    i++;
+                } else if (nextToken === "r") {
+                    console.log("ProParser::tokenizeString: Escape sequence: \\r");
+
+                    currentStr += "\r";
+                    i++;
+                } else if (nextToken === "t") {
+                    console.log("ProParser::tokenizeString: Escape sequence: \\t");
+
+                    currentStr += "\t";
+                    i++;
+                } else if (nextToken === "v") {
+                    console.log("ProParser::tokenizeString: Escape sequence: \\v");
+
+                    // "\x0B"
+                    currentStr += "\v";
+                    i++;
+                } else {
+                    currentStr += token;
+                }
+            } else if ((token === STR_DOUBLE_QUOTE) || (token === STR_SINGLE_QUOTE)) {
                 console.log("ProParser::tokenizeString: Special token: '" + token + "'");
 
-                let enquotedStr = ProParser.getEnquotedString(i, str, token);
-                console.log("  ProParser::tokenizeString: enquoted string: '" + enquotedStr + "'");
-                result.push(enquotedStr);
-                i += 2;
-                i += enquotedStr.length;
+                let enquotedStrObj = ProParser.getEnquotedString(i, str, token);
+                console.log("  ProParser::tokenizeString: enquoted string: '" + enquotedStrObj.string + "', length: " + enquotedStrObj.length);
+                result.push(enquotedStrObj.string);
+                i = enquotedStrObj.length;
             } else if (token === STR_OPENING_PARENTHESIS) {
                 console.log("ProParser::tokenizeString: Special token: '" + token + "'");
 
