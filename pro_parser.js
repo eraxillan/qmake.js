@@ -85,7 +85,7 @@ class ProParser {
 
             if (token === STR_HASH) {
                 console.log("ProParser::tokenizeString: Internal token: '" + token + "'");
-                
+
                 let nextToken = str[i + 1];
                 let twoTokens = token + nextToken;
                 let es = new EscapeSequence();
@@ -115,6 +115,8 @@ class ProParser {
     }
 
     static tokenizeString(str) {
+        console.log("ProParser::tokenizeString: input: '" + str + "'");
+
         let result = new QStack();
         let currentStr = "";
         let parenthesisStack = new QStack();
@@ -149,11 +151,11 @@ class ProParser {
                 console.log("ProParser::tokenizeString: Special token: '" + token + "'");
 
                 let enquotedStrObj = ProParser.getEnquotedString(i, str, token);
-                console.log("  ProParser::tokenizeString: enquoted string: '" + enquotedStrObj.string + "', length: " + enquotedStrObj.length);
+                console.log("  ProParser::tokenizeString: enquoted string: '" + enquotedStrObj.string + "', length: " + (enquotedStrObj.length - i - 2));
                 result.push(enquotedStrObj.string);
-                i = enquotedStrObj.length;
+                i = enquotedStrObj.length - 1;  // NOTE: 'i' will be incremented in 'for'
             } else if (token === STR_OPENING_PARENTHESIS) {
-                console.log("ProParser::tokenizeString: Special token: '" + token + "'");
+                console.log("ProParser::tokenizeString: opening parenthesis token");
 
                 // NOTE: "(" can be either syntax item (function call) or just part of arbitrary string value;
                 //       however, it must have corresponding ")" or syntax error will be thrown
@@ -172,7 +174,7 @@ class ProParser {
 
                 parenthesisStack.push({functionName: functionName, argumentIndex: 0});
             } else if (token === STR_CLOSING_PARENTHESIS) {
-                console.log("ProParser::tokenizeString: Special token: '" + token + "'");
+                console.log("ProParser::tokenizeString: closing parenthesis token");
 
                 if (!parenthesisStack.isEmpty() && (parenthesisStack.top.functionName !== undefined)) {
                     pushOperand();
@@ -276,7 +278,9 @@ class ProParser {
                 // Do not split strings by whitespace inside functions with raw string arguments
                 } else if ((!parenthesisStack.isEmpty()) && (parenthesisStack.top.functionName !== undefined) &&
                     (ProFunction.getFunctionArgumentType(parenthesisStack.top.functionName, parenthesisStack.top.argumentIndex) === VariableTypeEnum.RAW_STRING)) {
-                    currentStr += token;
+                    // NOTE: whitespaces after comma, function arguments separator, must be skipped
+                    if (result.top !== STR_COMMA)
+                        currentStr += token;
                 } else {
                     pushOperand();
                 }

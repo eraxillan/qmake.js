@@ -14,7 +14,7 @@ Statement
     = EmptyString
     / Comment
     / GenericAssignmentStatementT
-//    / GenericFunctionCallStatementT
+    / GenericFunctionCallStatementT
 //    / GenericConditionalStatementT
 
 GenericAssignmentStatementT
@@ -28,7 +28,34 @@ GenericAssignmentStatement
 
 // -------------------------------------------------------------------------------------------------
 
-// FIXME: function call
+// Function call
+GenericFunctionCallStatementT
+    = Whitespace* expr:GenericFunctionCallStatement Whitespace* { return expr; }
+
+GenericFunctionCallStatement
+    = TestFunctionCallStatement
+
+TestFunctionCallStatement
+    = id:VariableIdentifier Whitespace* "(" Whitespace* args:(FunctionArgumentString?) Whitespace* ")" !BackslashLiteral LineBreak* {
+    if (!args)
+        args = "";
+
+    let str = id + "(" + args + ")";
+
+    let evaluator = new evaluatorModule.ExpressionEvaluator(contextModule.context);
+    let rpnExpression = evaluator.convertToRPN(str);
+    let rpnResult = evaluator.evalRPN(rpnExpression);
+    var typeUtils = require("./type_utils");
+    if (typeUtils.isArray(rpnResult[0]))
+        return rpnResult[0];
+    else if (typeUtils.isString(rpnResult[0]))
+        return rpnResult;
+    else
+        throw new Error("Array or string expected");
+
+    return str;
+}
+
 // FIXME: scope statement
 
 // -------------------------------------------------------------------------------------------------
@@ -143,8 +170,17 @@ RawString
     console.log("----------------------------------------------------------")
 }
 
+FunctionArgumentString
+    = chars:FunctionArgumentCharacter+ {
+    return chars.join("");
+}
+
 NonLinebreakCharacter
     = !(HashLiteral / BackslashLiteral / LineBreak) char:. { return char; }
+    / BackslashLiteral sequence:EscapeSequence { return sequence; }
+
+FunctionArgumentCharacter
+    = !(HashLiteral / BackslashLiteral / LineBreak / ClosingParenthesis) char:. { return char; }
     / BackslashLiteral sequence:EscapeSequence { return sequence; }
 
 EscapeSequence
@@ -177,6 +213,8 @@ SingleQuoteLiteral = "'"
 DoubleQuoteLiteral = '"'
 HashLiteral = "#"
 BackslashLiteral = "\\"
+OpeningParenthesis = "("
+ClosingParenthesis = ")"
 
 // Delimeters
 LineBreak "Linebreak"
