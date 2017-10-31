@@ -21,7 +21,8 @@ var environmentVariableExpansionRegex_1 = /\$\(([_a-zA-Z][_a-zA-Z0-9]*)+\)/g;
 // 4) DESTDIR = $$(PWD)
 var environmentVariableExpansionRegex_2 = /\$\$\(([_a-zA-Z][_a-zA-Z0-9]*)+\)/g;
 // 5) target.path = $$[QT_INSTALL_PLUGINS]/designer
-var qmakePropertyExpansionRegex = /\$\$\[([_a-zA-Z][_a-zA-Z0-9]*)+\]/g;
+var qmakePropertyExpansionRegex_1 = /\$\$\[([_a-zA-Z][_a-zA-Z0-9]*)+\]/g;
+var qmakePropertyExpansionRegex_2 = /\$\$\[([_a-zA-Z][_a-zA-Z0-9]*)+\/get\]/g;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -344,7 +345,8 @@ class ProExecutionContext {
         strExpanded = strExpanded.replace(projectVariableExpansionRegex_2, replaceProVarFuncWrapper);
         strExpanded = strExpanded.replace(environmentVariableExpansionRegex_2, replaceEnvVarFunc);
         strExpanded = strExpanded.replace(environmentVariableExpansionRegex_1, replaceEnvVarFunc);
-        strExpanded = strExpanded.replace(qmakePropertyExpansionRegex, replacePropertyFunc);
+        strExpanded = strExpanded.replace(qmakePropertyExpansionRegex_1, replacePropertyFunc);
+        strExpanded = strExpanded.replace(qmakePropertyExpansionRegex_2, replacePropertyFunc);
 
         return strExpanded;
     }
