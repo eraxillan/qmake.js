@@ -5,6 +5,7 @@ const STR_FUNCTION_EXPAND_MARKER = "$$";
 // FIXME: replace assert with exceptions
 const assert = require('chai').assert;
 
+const commonModule = require("./common");
 const typeUtils = require("./type_utils");
 const builtinVariables = require("./builtin_variable_description");
 const VariableTypeEnum = builtinVariables.VariableTypeEnum;
@@ -374,9 +375,19 @@ function initBuiltinTestFunctions() {
         // debug(level, message)
         "debug": {
             operandCount: {required: 2, optional: 0},
-            // FIXME: check
-            //operandTypes: {0: VariableTypeEnum.NUMBER, 1: VariableTypeEnum.RAW_STRING},
+            operandTypes: {0: VariableTypeEnum.NUMBER, 1: VariableTypeEnum.RAW_STRING},
             action: function() {
+                // FIXME: implement full debug function logic (debug level check, etc.)
+                let args = Array.from(arguments);
+                let debugLevel = args[0];
+                let message = args[1];
+
+                if (!commonModule.isNumeric(debugLevel))
+                    throw new Error("Invalid debug level argument");
+                if (!typeUtils.isString(message) && typeUtils.isEmpty(message))
+                    throw new Error("Invalid message argument");
+
+                console.log("Project DEBUG:", message);
                 return true;
             }
         },
