@@ -114,10 +114,10 @@ function parseArguments(stringArgs) {
 
     var outputFileOption = { key: ["-o"], kind: "value", valueCount: 1, defaultValue: "", dest: "outputFileName" };
     var debugLevelOption = { key: ["-d"], kind: "count", defaultValue: 0, dest: "debugLevel" };
-    
+
     var templateOption = { key: ["-t"], kind: "value", valueCount: 1, defaultValue: "", dest: "projectTemplate"};
     var templatePrefixOption = { key: ["-tp"], kind: "value", valueCount: 1, defaultValue: "", dest: "projectTemplatePrefix"};
-    
+
     var showHelpOption = { key: ["-h", "-help", "--help"], kind: "help" };
     var showVersionOption = { key: ["-v", "-version", "--version"], kind: "version" };
 
@@ -126,7 +126,7 @@ function parseArguments(stringArgs) {
     var afterOption = { key: ["-after"], kind: "flag", defaultValue: false, dest: "afterAssingmentsParsing" };
     var lateOption = { key: ["-late"], kind: "flag", defaultValue: false, dest: "lateAssingmentsParsing" };
 //    var variableAssignmenOrderGroup = { options: [ earlyOption, beforeOption, afterOption, lateOption ], mutualExclusive: true };
-    
+
     var noRecursiveOption = { key: ["-norecursive"], kind: "flag", defaultValue: false, dest: "noRecursiveSearch" };
     var recursiveOption = { key: ["-recursive"], kind: "flag", defaultValue: true, dest: "recursiveSearch" };
 //    var fileSearchGroup = { options: [noRecursiveOption, recursiveOption], mutualExclusive: true };
@@ -139,7 +139,7 @@ function parseArguments(stringArgs) {
     var cacheFileOption = { key: ["-cache"], kind: "value", valueCount: 1, defaultValue: "", dest: "cacheFilePath" };
 
     var specOption = { key: [ "-spec" ], kind: "value", valueCount: 1, defaultValue: "", dest: "mkspec" };
-    
+
     var noCacheFileOption = { key: ["-nocache"], kind: "flag", defaultValue: false, dest: "dontUseCacheFile" };
     var noDependencyGenerationOption = { key: ["-nodepend"], kind: "flag", defaultValue: false, dest: "dontGenerateDependencies" };
     var noMocTargetsGenerationOption = { key: ["-nomoc"], kind: "flag", defaultValue: false, dest: "dontGenerateMocTargets" };
@@ -184,7 +184,7 @@ function parseArguments(stringArgs) {
                 case "count": {
                     if (optionsResult[optDescr.dest] === undefined)
                         optionsResult[optDescr.dest] = optDescr.defaultValue;
-                    
+
                     optionsResult[optDescr.dest] ++;
                     break;
                 }
@@ -205,7 +205,7 @@ function parseArguments(stringArgs) {
                 }
                 default: throw new Error("Invalid command line argument type");
             }
-            
+
             //console.log("OPTION: " + JSON.stringify(optDescr, null, 2));
         } else {
             //console.log("POSITIONAL: " + opt);
@@ -228,7 +228,7 @@ function parseArguments(stringArgs) {
         var arg = positionalResult[i];
         if (arg.includes("=") || arg.includes("+=") || arg.includes("*=") || arg.includes("-=") || arg.includes("~="))
             variableAssignments.push(arg);
-        else if (arg.endsWith(".pro"))
+        else if (arg.endsWith(".pro") || arg.endsWith(".pri") || arg.endsWith(".prf"))
             projectFilePaths.push(arg);
         else
             throw new Error("Unknown positional argument type");
@@ -258,3 +258,4 @@ function parseArguments(stringArgs) {
 module.exports = {
     parseArguments: parseArguments
 };
+
