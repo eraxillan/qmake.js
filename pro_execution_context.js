@@ -315,7 +315,8 @@ class ProExecutionContext {
 
     expandVariables(strSource) {
         assert.isString(strSource);
-        assert.isNotEmpty(strSource);
+        if (typeUtils.isEmpty(strSource))
+            return strSource;
 
         let replaceProVarFunc = function(getVariableValue, match, variableName, offset, string) {
             assert.isString(variableName);
