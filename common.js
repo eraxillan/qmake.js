@@ -26,6 +26,11 @@ function isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
+function isHexNumeric(n) {
+    let temp = parseInt(n, 16);
+    return !isNaN(temp) && isFinite(temp);
+}
+
 function joinTokens(str, index, count) {
     let result = "";
     for (let j = index; j < Math.min(index + count, str.length); j++)
@@ -40,5 +45,6 @@ module.exports = {
     QStack: QStack,
 
     isNumeric: isNumeric,
+    isHexNumeric: isHexNumeric,
     joinTokens: joinTokens
 };
