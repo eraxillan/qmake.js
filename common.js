@@ -26,11 +26,19 @@ function isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
+function joinTokens(str, index, count) {
+    let result = "";
+    for (let j = index; j < Math.min(index + count, str.length); j++)
+        result += str[j];
+    return result;
+}
+
 // -------------------------------------------------------------------------------------------------
 
 module.exports = {
 //    QString: QString,
     QStack: QStack,
 
-    isNumeric: isNumeric
+    isNumeric: isNumeric,
+    joinTokens: joinTokens
 };
