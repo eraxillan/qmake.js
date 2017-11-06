@@ -2,7 +2,8 @@
 
 const typeUtils = require("./type_utils");
 
-var QStack = require("./common").QStack;
+var commonModule = require("./common");
+var QStack = commonModule.QStack;
 var ProFunction = require("./pro_function").ProFunction;
 
 var builtinFunctionModule = require("./builtin_function_description");
@@ -13,6 +14,7 @@ const VariableTypeEnum = builtinVariablesModule.VariableTypeEnum;
 // -------------------------------------------------------------------------------------------------
 
 const STR_HASH = "#";
+const STR_BACKSLASH = "\\";
 
 const STR_OPENING_PARENTHESIS = "(";
 const STR_CLOSING_PARENTHESIS = ")";
@@ -42,30 +44,127 @@ const STR_TILDE_EQUALS = "~=";      // DEFINES ~= s/QT_[DT].+/QT
 class EscapeSequence {
     constructor() {
         this.convertMap = {
-            "#\"": "\"",
-            "#\'": "\'",
-            "#a": "\a",
-            "#b": "\b",
-            "#f": "\f",
-            "#n": "\n",
-            "#r": "\r",
-            "#t": "\t",
-            "#v": "\v"
+            "\\\\": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\\' escape sequence");
+                return "\\";
+            },
+
+            "\\\"": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\'' escape sequence");
+                return "\"";
+            },
+            "\\\'": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\'' escape sequence");
+                return "\'";
+            },
+            "\\x": (str, indexFrom, length) => {
+                console.log("EscapeSequence::getEscapeSequence: '\\xABCD' or '\\xAB' escape sequence");
+                let result = "";
+                let charCodeStr = commonModule.joinTokens(str, indexFrom + 2, length);
+                let charCode = parseInt(charCodeStr, 16);
+                if (!isNaN(charCode))
+                    result = String.fromCharCode(charCode);
+                else {
+                    console.log("[ERROR] EscapeSequence::getEscapeSequence: invalid hexadecimal character code '" + charCodeStr + "'");
+                    throw new Error();
+                }
+                return result;
+            },
+            "\\?": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\?' escape sequence");
+                return "\?";
+            },
+            "\\a": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\\a' escape sequence");
+                return "\a";
+            },
+            "\\b": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\\b' escape sequence");
+                return "\b";
+            },
+            "\\f": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\\f' escape sequence");
+                return "\f";
+            },
+            "\\n": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\\n' escape sequence");
+                return "\n";
+            },
+            "\\r": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\\r' escape sequence");
+                return "\r";
+            },
+            "\\t": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\\t' escape sequence");
+                return "\t";
+            },
+            "\\v": () => {
+                console.log("EscapeSequence::getEscapeSequence: '\\v' escape sequence");
+                return "\v";
+            }
         };
+
+        // Add octal character codes: from 0 to 777
+        for (let i = 0; i < 777; i++) {
+            this.convertMap["\\" + i.toString().padStart(3, "0")] = () => {
+                let charCode_8_3 = parseInt(i.toString(), 8);
+                return String.fromCharCode(charCode_8_3);
+            }
+        }
+
     }
 
-    isEscapeSequence(str) {
-        return (str in this.convertMap);
+    isEscapeSequence(str, indexFrom) {
+        // NOTE: any escape sequence must start with exactly one backslash
+        if (str[indexFrom] !== STR_BACKSLASH)
+            return { result: false, length: 0 };
+
+        // Escape sequence could contain two, three or four characters
+        let twoTokens = commonModule.joinTokens(str, indexFrom, 2);     // \r
+        let fourTokens = commonModule.joinTokens(str, indexFrom, 4);    // \123, \xAB
+
+        if (twoTokens === "\\x") {
+            // \x can be followed by one, two, three or four hex digits
+            let digitCount = 0;
+            let index = indexFrom + 1;
+            do {
+                index++;
+                if (!commonModule.isHexNumeric(str[index]))
+                    break;
+
+                digitCount++;
+            } while (true);
+
+            if (digitCount === 0) {
+                console.log("[ERROR] EscapeSequence::isEscapeSequence: invalid sequence \\x: must be followed with hexadecimal character code");
+                throw new Error();
+            }
+            return { result: true, length: digitCount + 2 };
+        } else if (fourTokens in this.convertMap)
+            return { result: true, length: 4 };
+        else if (twoTokens in this.convertMap)
+            return { result: true, length: 2 };
+
+        return { result: false, length: 0 };
     }
 
-    getEscapeSequence(str) {
-        return this.convertMap[str];
+    getEscapeSequence(str, indexFrom, length) {
+        let key = str.substr(indexFrom, length);
+        let key_1 = key.substr(0, 4);   // \777
+        let key_2 = key.substr(0, 2);   // \r
+        if (key_1 in this.convertMap)
+            return this.convertMap[key_1](str, indexFrom, length);
+        else if (key_2 in this.convertMap)
+            return this.convertMap[key_2](str, indexFrom, length);
+        else {
+            console.log("[ERROR] EscapeSequence::getEscapeSequence: invalid sequence '" + key + "'");
+            throw new Error();
+        }
     }
 }
 
+// --------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-// FIXME: implement boolean expression support
 class ProParser {
     static getEnquotedString(startIndex, str, quoteChar) {
         if (str[startIndex] !== quoteChar) {
@@ -84,16 +183,19 @@ class ProParser {
             console.log("ProParser::getEnquotedString: token: '" + token + "'");
 
             if (token === STR_HASH) {
-                console.log("ProParser::tokenizeString: Internal token: '" + token + "'");
+                console.log("ProParser::getEnquotedString: hash token (start comment)");
 
-                let nextToken = str[i + 1];
-                let twoTokens = token + nextToken;
+                break;
+            } else if (token === STR_BACKSLASH) {
+                console.log("ProParser::getEnquotedString: backslash (escape sequence)");
+
                 let es = new EscapeSequence();
-                if (es.isEscapeSequence(twoTokens)) {
-                    let twoTokensExpanded = es.getEscapeSequence(twoTokens);
-                    console.log("ProParser::getEnquotedString: Escape sequence:", twoTokensExpanded);
-                    enquotedStr += twoTokensExpanded;
-                    i++;
+                let result = es.isEscapeSequence(str, i);
+                if (result.result) {
+                    console.log("ProParser::getEnquotedString: escape sequence length = " + result.length);
+                    let esStrExpanded = es.getEscapeSequence(str, i, result.length);
+                    enquotedStr += esStrExpanded;
+                    i += result.length - 1;
                 } else
                     enquotedStr += token;
             } else if (token === quoteChar) {
@@ -130,21 +232,36 @@ class ProParser {
             currentStr = "";
         }
 
+        let hasTopFunction = () => {
+            return !parenthesisStack.isEmpty() && (parenthesisStack.top.functionName !== undefined);
+        }
+
+        let getTopFunctionName = () => {
+            return parenthesisStack.top.functionName;
+        }
+
+        let getTopFunctionArgumentType = () => {
+            return ProFunction.getFunctionArgumentType(parenthesisStack.top.functionName, parenthesisStack.top.argumentIndex);
+        }
+
         for (let i = 0; i < str.length; i++) {
-            let token = str[i];
+            let token = commonModule.joinTokens(str, i, 1);
 
-            // Escape sequence: #' or #" means \' or \" respectively
+            // Single-line comment
             if (token === STR_HASH) {
-                console.log("ProParser::tokenizeString: Internal token: '" + token + "'");
+                console.log("ProParser::tokenizeString: hash token (start comment)");
 
-                let nextToken = str[i + 1];
-                let twoTokens = token + nextToken;
+                break;
+            } else if (token === STR_BACKSLASH) {
+                console.log("ProParser::tokenizeString: backslash (escape sequence)");
+
                 let es = new EscapeSequence();
-                if (es.isEscapeSequence(twoTokens)) {
-                    let twoTokensExpanded = es.getEscapeSequence(twoTokens);
-                    console.log("ProParser::getEnquotedString: Escape sequence:", twoTokensExpanded);
-                    currentStr += twoTokensExpanded;
-                    i++;
+                let result = es.isEscapeSequence(str, i);
+                if (result.result) {
+                    console.log("ProParser::tokenizeString: escape sequence length = " + result.length);
+                    let esStrExpanded = es.getEscapeSequence(str, i, result.length);
+                    currentStr += esStrExpanded;
+                    i += result.length - 1;
                 } else
                     currentStr += token;
             } else if ((token === STR_DOUBLE_QUOTE) || (token === STR_SINGLE_QUOTE)) {
@@ -176,7 +293,7 @@ class ProParser {
             } else if (token === STR_CLOSING_PARENTHESIS) {
                 console.log("ProParser::tokenizeString: closing parenthesis token");
 
-                if (!parenthesisStack.isEmpty() && (parenthesisStack.top.functionName !== undefined)) {
+                if (hasTopFunction()) {
                     pushOperand();
 
                     console.log("  ProParser::tokenizeString: closing parenthesis");
@@ -231,8 +348,7 @@ class ProParser {
             } else if (token === STR_COMMA) {
                 console.log("ProParser::tokenizeString: Special token: '" + token + "'");
 
-                if ((!parenthesisStack.isEmpty()) && (parenthesisStack.top.functionName !== undefined) &&
-                    (ProFunction.getFunctionArgumentType(parenthesisStack.top.functionName, parenthesisStack.top.argumentIndex) !== VariableTypeEnum.RAW_STRING)) {
+                if (hasTopFunction() && (getTopFunctionArgumentType() !== VariableTypeEnum.RAW_STRING)) {
                     pushOperand();
 
                     console.log("  ProParser::tokenizeString: comma as function argument separator");
@@ -247,8 +363,9 @@ class ProParser {
                 console.log("ProParser::tokenizeString: Whitespace token");
 
                 // Add comma to whitespace-separated list for corresponding functions
-                if ((!parenthesisStack.isEmpty()) && (parenthesisStack.top.functionName !== undefined) &&
-                    (ProFunction.getFunctionArgumentType(parenthesisStack.top.functionName, parenthesisStack.top.argumentIndex) === VariableTypeEnum.STRING_LIST)) {
+                if (hasTopFunction() && (getTopFunctionArgumentType() === VariableTypeEnum.STRING_LIST)) {
+                    console.log("ProParser::tokenizeString: processing function '" + getTopFunctionName() + "' argument list...");
+
                     let shouldAddComma = (currentStr.length > 0);
 
                     pushOperand();
@@ -261,10 +378,16 @@ class ProParser {
                                 break;
 
                             token = str[i];
-                            if (!/\s/.test(token))
+                            if (/\s/.test(token))
+                                console.log("ProParser::tokenizeString: Whitespace token");
+                            else
                                 break;
-                            console.log("ProParser::tokenizeString: Whitespace token");
                         } while (true);
+
+                        if (token === STR_HASH) {
+                            console.log("ProParser::tokenizeString: Hash token");
+                            break;
+                        }
 
                         shouldAddComma = (token !== STR_CLOSING_PARENTHESIS);
                         if (shouldAddComma) {
@@ -317,6 +440,8 @@ class ProParser {
 // -------------------------------------------------------------------------------------------------
 
 module.exports = {
+    STR_HASH: STR_HASH,
+    STR_BACKSLASH: STR_BACKSLASH,
     STR_OPENING_PARENTHESIS: STR_OPENING_PARENTHESIS,
     STR_CLOSING_PARENTHESIS: STR_CLOSING_PARENTHESIS,
     STR_OPENING_CURLY_BRACE: STR_OPENING_CURLY_BRACE,

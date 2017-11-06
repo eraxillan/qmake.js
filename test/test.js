@@ -118,7 +118,7 @@ describe("qmake core features", function() {
             assert.equal('Z', parserOutput.context.getVariableRawValue("CAPITAL_Z_LETTER_9"));
             assert.equal('Z', parserOutput.context.getVariableRawValue("CAPITAL_Z_LETTER_10"));
 
-            assert.equal("\a\b\f\n\r\t\v", parserOutput.context.getVariableRawValue("ESC_SEQ_11")[0]);
+            assert.equal("\a\b\f\n\r\t\v", parserOutput.context.getVariableRawValue("ESC_SEQ_11"));
             assert.equal("\a\b\f\n\r\t\v", parserOutput.context.getVariableRawValue("ESC_SEQ_12"));
 
             assert.equal("\'test\'", parserOutput.context.getVariableRawValue("ESC_SEQ_21"));
@@ -801,4 +801,8 @@ describe("qmake built-in variables test", function() {
     // *=
     // -=
 });
+
+// FIXME: add qmake built-in functions tests
+
+// FIXME: add scope statements tests
 

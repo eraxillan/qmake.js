@@ -36,7 +36,7 @@ GenericFunctionCallStatement
     = TestFunctionCallStatement
 
 TestFunctionCallStatement
-    = id:VariableIdentifier Whitespace* "(" Whitespace* args:(FunctionArgumentString?) Whitespace* ")" !BackslashLiteral LineBreak* {
+    = id:VariableIdentifier Whitespace* "(" Whitespace* args:(FunctionArgumentString?) Whitespace* ")" Whitespace* !BackslashLiteral LineBreak* {
     if (!args)
         args = "";
 
@@ -46,14 +46,15 @@ TestFunctionCallStatement
     let rpnExpression = evaluator.convertToRPN(str);
     let rpnResult = evaluator.evalRPN(rpnExpression);
     var typeUtils = require("./type_utils");
+    let result;
     if (typeUtils.isArray(rpnResult[0]))
-        return rpnResult[0];
+        result = rpnResult[0];
     else if (typeUtils.isString(rpnResult[0]))
-        return rpnResult;
+        result = rpnResult;
     else
         throw new Error("Array or string expected");
 
-    return str;
+    return {result: result, string: str};
 }
 
 // FIXME: scope statement
@@ -179,31 +180,33 @@ NonLinebreakCharacter
     = !(HashLiteral / BackslashLiteral / LineBreak) char:. { return char; }
     / BackslashLiteral sequence:EscapeSequence { return sequence; }
 
+// FIXME: implement ")" inside enquoted string correct detection;
+//        looks like enquoted string detection must be implemented first
 FunctionArgumentCharacter
     = !(HashLiteral / BackslashLiteral / LineBreak / ClosingParenthesis) char:. { return char; }
     / BackslashLiteral sequence:EscapeSequence { return sequence; }
 
 EscapeSequence
-    = SingleQuoteLiteral            { return "#'"; }
-    / DoubleQuoteLiteral            { return '#"' }
-    / BackslashLiteral
-    / "?"  { return "\?";   }
-    / "a"  { return "#a"; }
+    = SingleQuoteLiteral            { return "\\'"; }
+    / DoubleQuoteLiteral            { return '\\"' }
+    / BackslashLiteral              { return "\\\\"; }
+    / "?"  { return "\\?";   }
+    / "a"  { return "\\a"; }
     / "x" digits:$(HexDigit HexDigit HexDigit HexDigit) {
-        return String.fromCharCode(parseInt(digits, 16));
+        return "\\x" + digits;
     }
     / digits:$(OctDigit OctDigit OctDigit) {
-        return String.fromCharCode(parseInt(digits, 8));
+        return "\\" + digits;
     }
     / "x" digits:$(HexDigit HexDigit) {
-        return String.fromCharCode(parseInt(digits, 16));
+        return "\\x" + digits;
     }
-    / "b"  { return "#b"; }
-    / "f"  { return "#f"; }
-    / "n"  { return "#n"; }
-    / "r"  { return "#r"; }
-    / "t"  { return "#t"; }
-    / "v"  { return "#v"; }
+    / "b"  { return "\\b"; }
+    / "f"  { return "\\f"; }
+    / "n"  { return "\\n"; }
+    / "r"  { return "\\r"; }
+    / "t"  { return "\\t"; }
+    / "v"  { return "\\v"; }
 
 OctDigit = d:[0-7]
 DecDigit = d:[0-9]
