@@ -166,6 +166,68 @@ class EscapeSequence {
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 
 class ProParser {
+    static splitStringToLines(str) {
+        return str.split(/[\r\n]/);
+    }
+
+    static preprocessLines(strLinesArray) {
+        if (!typeUtils.isArray(strLinesArray))
+            throw new Error("Array expected");
+        if (strLinesArray.length === 0)
+            return [];
+
+        let result = [];
+        for (let lineIndex = 0; lineIndex < strLinesArray.length; lineIndex++) {
+            let strLine = strLinesArray[lineIndex];
+            strLine = strLine.trim();
+
+            let hashIndex = strLine.indexOf(STR_HASH);
+            if (hashIndex >= 0) {
+                if (hashIndex === 0)
+                    console.log("ProParser::preprocessLines: skip comment line");
+                else
+                    console.log("ProParser::preprocessLines: cutting off inline comment");
+
+                strLine = strLine.substring(0, hashIndex);
+                strLine = strLine.trim();
+            }
+
+            let isMultiLine = false;
+            let startLineIndex = -1;
+            let endLineIndex = -1;
+            if (strLine[strLine.length - 1] === STR_BACKSLASH) {
+                isMultiLine = true;
+
+                let strMultiLine = strLine.substring(0, strLine.length - 1);
+                let j = lineIndex + 1;
+                for ( ; j < strLinesArray.length; j++) {
+                    strLine = strLinesArray[j];
+                    strLine = strLine.trim();
+
+                    let endsWithBackslash = strLine[strLine.length - 1] === "\\";
+                    strMultiLine += endsWithBackslash ? strLine.substring(0, strLine.length - 1) : " " + strLine;
+
+                    if (!endsWithBackslash)
+                        break;
+                }
+
+                startLineIndex = lineIndex;
+                endLineIndex = j;
+                lineIndex = j;
+                strLine = strMultiLine;
+            }
+
+            if (isMultiLine)
+                console.log("Multi-line " + (startLineIndex + 1) + " - " + (endLineIndex + 1) + ": |" + strLine + "|");
+            else
+                console.log("Line " + (lineIndex + 1) + ": |" + strLine + "|");
+
+            result.push(strLine);
+        }
+
+        return result;
+    }
+
     static getEnquotedString(startIndex, str, quoteChar) {
         if (str[startIndex] !== quoteChar) {
             throw new Error("String must begin with quote character: " + str[startIndex]);
